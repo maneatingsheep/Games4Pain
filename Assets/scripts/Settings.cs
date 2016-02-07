@@ -178,5 +178,6 @@ public class Settings : MonoBehaviour {
 		public string Title;
 		public SettingsTypes type;
 		public SettingScope scope;
-	}
+        public bool Testable;
+    }
 }

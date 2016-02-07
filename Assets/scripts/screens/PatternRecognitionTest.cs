@@ -21,10 +21,15 @@ public class PatternRecognitionTest : PatternTest {
 
 			bool isLong = (wrongPattern & (1 << i)) != 0;
 			pulseImages[i].sprite = (isLong)?pulseModes[1]:pulseModes[0];
-		} 
+		}
 
-	
-	}
+
+        ActionInstructions[0] = "";
+        ActionInstructions[1] = "";
+        ActionInstructions[2] = "The transmittion contains an error";
+        ActionInstructions[3] = "Find it";
+
+    }
 
 	public void ImageClicked(Image image){
 		if (!Responsive) return;

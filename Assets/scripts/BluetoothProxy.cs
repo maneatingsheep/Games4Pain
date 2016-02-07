@@ -62,16 +62,68 @@ public class BluetoothProxy : MonoBehaviour {
 		TransmitData ();
 	}
 
-	public void DeliverPattern(byte[] pattern){
-		data = pattern;
-		TransmitData ();
-	}
 
-	private void TransmitData(){
+
+    public void DeliverTest5(byte Chennel1, byte Chennel2, byte amp, byte pattern, byte numOfPulses) {
+        data = new byte[]{0xc3, 0xd0,
+            0x05, //test num
+			Chennel1,
+            0, //amp low
+			Settings.Instance.GetProperty(Settings.SettingsTypes.ShortPulse),
+            numOfPulses,
+            Chennel2,
+            amp,
+            Settings.Instance.GetProperty(Settings.SettingsTypes.LongPulse),
+            pattern,
+            Settings.Instance.GetProperty(Settings.SettingsTypes.InterbeatPause),
+            0xd2};
+
+        TransmitData();
+    }
+
+    public void DeliverTest4(byte Chennel1, byte Chennel2, byte amp, byte pattern, byte numOfPulses) {
+        data = new byte[]{0xc3, 0xd0,
+            0x04, //test num
+			Chennel1,
+            0, //amp low
+			Settings.Instance.GetProperty(Settings.SettingsTypes.ShortPulse),
+            numOfPulses,
+            Chennel2,
+            amp,
+            Settings.Instance.GetProperty(Settings.SettingsTypes.LongPulse),
+            pattern,
+            Settings.Instance.GetProperty(Settings.SettingsTypes.InterbeatPause),
+            0xd2};
+
+        TransmitData();
+    }
+
+    public void DeliverTest2(byte Chennel1, byte Chennel2, byte amp1, byte amp2) {
+        data = new byte[]{0xc3, 0xd0,
+            0x02, //test num
+			Chennel1,
+            amp1,
+            Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudjmentPulseLength),
+            Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudjmentDelay),
+            Chennel2,
+            amp2,
+            Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudjmentPulseLength),
+            0, //delay - not used
+			0, //time between pulses in 15mSec intervals - not used
+			0xd2};
+
+        TransmitData();
+    }
+
+
+    private void TransmitData(){
 		string str = "";
 		for (int i = 0; i < data.Length; i++) {
 			str += " " + data[i].ToString();
 		}
+
+        print(str);
+
 		ScreenManager.Instance.ShowError(str);
 		if (UseRealDevice) {
 			BluetoothLEHardwareInterface.WriteCharacteristic (_deviceUID, _serviceUUID, _characteristicUUID, data, data.Length, false, null);

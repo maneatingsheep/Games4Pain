@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 using Holoville.HOTween;
+using System.Collections.Generic;
 
 public class TestManager : MonoBehaviour {
 
@@ -9,20 +9,24 @@ public class TestManager : MonoBehaviour {
 
 	public static TestManager Instance;
 
-	private int currentTestIndex;
+    public TestTRansition TestTRansitionInst;
+
+    private int currentTestIndex;
 	private BasicTest currentTest;
-	public Text Instruction;
+	public Text[] Instruction;
 	public Text RewindCount;
 	public Button RewindButt;
 
-	public Color[] RoundInstruction;
+    private int _currentVisibleTest;
+    private int _totalVisibleTests;
+
+    public Color[] RoundInstruction;
 	public Color[] AnswerCorrect;
 	public Color[] AnswerWrong;
 
 
 	public Image RoundBack;
-	public Image RoundTimer;
-	public Image RoundTimerFill;
+	
 
 	public int RoundRewinds;
 	private int _currentRewinds;
@@ -32,39 +36,79 @@ public class TestManager : MonoBehaviour {
 	public Sprite[] ImageSprites;
 
 	private bool _lastAnswerCorrect;
+	private bool _lastTestCorrect;
 
-	private int currentQuaestion;
+    private int currentQuaestion;
 
-	void Awake () {
+    public bool SkipTransitions;
+
+    public List<CompletedTest> CompletedTests = new List<CompletedTest>();
+
+    void Awake () {
 		Instance = this;
 	}
 	
 	public void Init(){
-		currentTestIndex = -1;
-		SetImage (null);
-	}
+        TestTRansitionInst.gameObject.SetActive(false);
+    }
 
-	public bool NextTest(){
+    public void Reset() {
+        currentTestIndex = -1;
+        _currentVisibleTest = -1;
+        SetImage(null);
+
+        for (int i = 0; i < TestSeq.Length; i++) {
+            if ( Settings.Instance.GetProperty(Settings.SettingsTypes.QuestionsPerRound, i) > 0){
+                _totalVisibleTests++;
+            }
+        }
+
+        _lastTestCorrect = true;
+
+        TestTRansitionInst.SetMap(_totalVisibleTests);
+
+        TestTRansitionInst.gameObject.SetActive(false);
+
+        CompletedTests.Clear();
+
+    }
+
+    public bool NextTest(){
 		do {
 			currentTestIndex++;
 		} while(currentTestIndex < TestSeq.Length && Settings.Instance.GetProperty(Settings.SettingsTypes.QuestionsPerRound, currentTestIndex) == 0);
 
-		if (currentTestIndex == TestSeq.Length) {
+        _currentVisibleTest++;
+
+        
+
+        if (currentTestIndex == TestSeq.Length) {
 			return false;
 		} else {
-
-			foreach (Transform child in transform) {
-				if (child.GetComponent<BasicTest> () && child.GetComponent<BasicTest> ().TestType == TestSeq [currentTestIndex]) {
+            CompletedTests.Add(new CompletedTest() { TestType = TestSeq[currentTestIndex] });
+            foreach (Transform child in transform) {
+				if (child.GetComponent < BasicTest> () && CompareTestTypes(child.GetComponent<BasicTest> ().TestType, TestSeq [currentTestIndex])) {
 					currentTest = child.GetComponent<BasicTest> ();
 					currentTest.NumOfQuestions = Settings.Instance.GetProperty(Settings.SettingsTypes.QuestionsPerRound, currentTestIndex);
-				}
+                    CompletedTests[CompletedTests.Count - 1].CorrectQuestions = 0;
+                    CompletedTests[CompletedTests.Count - 1].TotalQuestions = currentTest.NumOfQuestions;
+                }
 			}
 
-			return true;
+            TestProgress.Instance.SetNumOfQuestions(currentTest.NumOfQuestions);
+
+            return true;
 		}
 
-
 	}
+
+    private bool CompareTestTypes(BasicTest.TestTypes TestA, BasicTest.TestTypes TestB) {
+        if (TestA == TestB) return true;
+        if (TestA == BasicTest.TestTypes.SingleSite && TestB == BasicTest.TestTypes.TwoSites) return true;
+        if (TestA == BasicTest.TestTypes.SingleSite && TestB == BasicTest.TestTypes.SingleWithDistraction) return true;
+        return false;
+        
+    }
 
 	public void StartTest(){
 		currentQuaestion = 0;
@@ -74,7 +118,9 @@ public class TestManager : MonoBehaviour {
 			}
 		}
 
-		Instruction.gameObject.SetActive (true);
+        for (int i = 0; i < Instruction.Length; i++) {
+            Instruction[i].text = "";
+        }
 
 		_currentRewinds = RoundRewinds;
 		RewindCount.text = "X" + _currentRewinds;
@@ -83,41 +129,85 @@ public class TestManager : MonoBehaviour {
 		RewindCount.gameObject.SetActive (false);
 		RewindButt.gameObject.SetActive (false);
 
-		Instruction.text = "Round " + (currentTestIndex + 1) + " / " + TestSeq.Length;
 		SetBackMode (TestManager.BackModes.TestBegin);
 
-		Invoke ("StartQuaestion", 2f);
+        Instruction[0].text = "Sector " + (_currentVisibleTest + 1) + " / " + _totalVisibleTests;
+        Instruction[1].text = "";
+        if (_lastTestCorrect) {
+            Instruction[2].text = "Destination found!";
+            Instruction[3].text = "Full speed ahead";
+        } else {
+            Instruction[2].text = "Destination unknown";
+            Instruction[3].text = "Lets see...";
+        }
+
+
+        TestTRansitionInst.gameObject.SetActive(true);
+
+        TestTRansitionInst.ProgressToNextStar(_lastTestCorrect);
+
+        if (SkipTransitions) {
+            StartQuaestion();
+        } else {
+            Invoke("StartQuaestion", 6f);
+        }
+		
 	}
 
 	private void StartQuaestion(){
-		foreach (Transform child in transform)
+        //show image
+
+        TestProgress.Instance.SetQuestionState(currentQuaestion, 1);
+
+        foreach (Transform child in transform)
 		{
 			if (child.GetComponent<BasicTest>()){
 				child.gameObject.SetActive(false);
 			}
 		}
 		currentTest.Reset ();
-		Instruction.gameObject.SetActive (false);
 
-		SetImage (ImageSprites[Random.Range(0, ImageSprites.Length)]);
+        for (int i = 0; i < Instruction.Length; i++) {
+            Instruction[i].text = "";
+        }
+
+        Instruction[2].text = "Receiving transmittion...";
+
+
+        SetImage (ImageSprites[Random.Range(0, ImageSprites.Length)]);
 		SetBackMode (TestManager.BackModes.Neutral);
 
-		Invoke ("ShowInstruction", 2f);
+        TestTRansitionInst.gameObject.SetActive(false);
+
+        if (SkipTransitions) {
+            ShowInstruction();
+        } else {
+            Invoke("ShowInstruction", 2f);
+        }
 	}
 
 	private void ShowInstruction(){
-		Instruction.gameObject.SetActive (true);
-		Instruction.text = currentTest.Instruction;
 
-		SetImage (null);
-		SetBackMode (TestManager.BackModes.Neutral);
+        for (int i = 0; i < Instruction.Length; i++) {
+            Instruction[i].text = currentTest.Instructions[i];
+        }
 
-		Invoke ("DeliverPattern", 2f);
+        if (SkipTransitions) {
+            DeliverPattern();
+        } else {
+            Invoke ("DeliverPattern", 2f);
+        }
+
 	}
 
 	private void DeliverPattern(){
 
-		Invoke ("ShowTestUI", currentTest.DeliverPattern());
+        if (SkipTransitions) {
+            ShowTestUI();
+        } else {
+            Invoke ("ShowTestUI", currentTest.DeliverPattern());
+
+        }
 	}
 
 	private void ShowTestUI(){
@@ -132,33 +222,58 @@ public class TestManager : MonoBehaviour {
 
 		currentTest.Responsive = true;
 
-		Instruction.gameObject.SetActive (false);
+        for (int i = 0; i < Instruction.Length; i++) {
+            Instruction[i].text = currentTest.ActionInstructions[i];
+        }
+        
 
-		RewindCount.gameObject.SetActive (true);
+        SetImage(null);
+        SetBackMode(TestManager.BackModes.Neutral);
+
+        RewindCount.gameObject.SetActive (true);
 		RewindButt.gameObject.SetActive (true);
-
-		SetTimer (6);
+        
 	}
 
 	public void AnswerReceived(bool correct){
 		currentTest.Responsive = false;
 		currentTest.FreezeControls ();
-		RewindCount.gameObject.SetActive (false);
+        RewindCount.gameObject.SetActive (false);
 		RewindButt.gameObject.SetActive (false);
 
 		_lastAnswerCorrect = correct;
 
-		Invoke ("ShowResult", 1f);
+        if (correct) {
+            CompletedTests[_currentVisibleTest].CorrectQuestions++;
+        }
+
+        if (SkipTransitions) {
+            ShowResult();
+        } else {
+            Invoke("ShowResult", 1f);
+
+        }
 
 	}
 
 	private void ShowResult(){
-		Instruction.gameObject.SetActive (true);
 		currentTest.gameObject.SetActive (false);
-
-		Instruction.text = (_lastAnswerCorrect)?"CORRECT":"WRONG";
+        
 		SetBackMode ((_lastAnswerCorrect)?TestManager.BackModes.TestCorrect:TestManager.BackModes.TestWrong);
-		Invoke ("EndQuestion", 2f);
+
+        Instruction[0].text = "";
+        Instruction[1].text = "";
+        Instruction[2].text = "";
+        Instruction[3].text = (_lastAnswerCorrect) ? "Correct":"Wrong";
+
+        TestProgress.Instance.SetQuestionState(currentQuaestion, (_lastAnswerCorrect) ? 2 : 3);
+
+        if (SkipTransitions) {
+            EndQuestion();
+        } else {
+            Invoke("EndQuestion", 2f);
+
+        }
 	}
 
 	public void EndQuestion(){
@@ -167,9 +282,14 @@ public class TestManager : MonoBehaviour {
 		if (currentQuaestion < currentTest.NumOfQuestions) {
 			StartQuaestion ();
 		} else {
-			FlowManager.Instance.TestFinished();
+            TestProgress.Instance.SetNumOfQuestions(0);
+            _lastTestCorrect = CompletedTests[_currentVisibleTest].CorrectQuestions >= currentTest.NumOfQuestions / 2;
+
+            FlowManager.Instance.TestFinished();
 		}
-	}
+
+        
+    }
 
 	public void RewindClicked(){
 		_currentRewinds--;
@@ -211,24 +331,17 @@ public class TestManager : MonoBehaviour {
 		
 		if (doJump) {
 			RoundBack.color = targetCol;
-			Instruction.color = instructionCol;
 		} else {
 			HOTween.To (RoundBack, 0.6f, "color", targetCol);
-			HOTween.To (Instruction, 0.6f, "color", instructionCol);
 		}
 	}
 	
 	public void SetImage(Sprite sprite){
 		RoundBack.sprite = sprite;
 	}
+
+    
 	
-	public void SetTimer(float time){
-		RoundTimer.gameObject.SetActive (true);
-		RoundTimerFill.fillAmount = 0;
-		HOTween.To (RoundTimerFill, time, new TweenParms ().Prop ("fillAmount", 1).Ease (EaseType.Linear).OnComplete (EndTimer));
-	}
-	
-	public void EndTimer(){
-		RoundTimer.gameObject.SetActive (false);
-	}
 }
+
+

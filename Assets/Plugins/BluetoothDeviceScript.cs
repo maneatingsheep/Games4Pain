@@ -27,8 +27,7 @@ public class BluetoothDeviceScript : MonoBehaviour
 	public Action<string, byte[]> DidUpdateCharacteristicValueAction;
 	public Action<string, string, byte[]> DidUpdateCharacteristicValueWithDeviceAddressAction;
 
-	private bool Initialized;
-
+	
 	// Use this for initialization
 	void Start ()
 	{
@@ -69,15 +68,14 @@ public class BluetoothDeviceScript : MonoBehaviour
 
 			if (message.Length >= deviceInitializedString.Length && message.Substring (0, deviceInitializedString.Length) == deviceInitializedString)
 			{
-				Initialized = true;
-
+				
 				if (InitializedAction != null)
 					InitializedAction ();
 			}
 			else if (message.Length >= deviceDeInitializedString.Length && message.Substring (0, deviceDeInitializedString.Length) == deviceDeInitializedString)
 			{
 				BluetoothLEHardwareInterface.FinishDeInitialize ();
-				Initialized = false;
+				
 				
 				if (DeinitializedAction != null)
 					DeinitializedAction ();

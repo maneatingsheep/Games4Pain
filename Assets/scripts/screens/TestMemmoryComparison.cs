@@ -5,14 +5,29 @@ using UnityEngine.UI;
 
 public class TestMemmoryComparison : PatternTest {
 
-	public Button SameButton;
-	public Button DiffButton;
-	
+	public Image SameButton;
+	public Image DiffButton;
+
+    public Sprite[] ButtonSprites;
+
 	override public void Reset(){
 
 		base.Reset ();
 
-		Instruction = "Pay attention to your " + bodyPart1 + " and then to your " + bodyPart2;
+        SameButton.sprite = ButtonSprites[0];
+        DiffButton.sprite = ButtonSprites[0];
+        SameButton.GetComponentInChildren<Text>().color = Color.black;
+        DiffButton.GetComponentInChildren<Text>().color = Color.black;
+
+        Instructions[0] = "Pay attention to your";
+        Instructions[1] = bodyPart1;
+        Instructions[2] = "and then your";
+        Instructions[3] = bodyPart2;
+
+        ActionInstructions[0] = "";
+        ActionInstructions[1] = "";
+        ActionInstructions[2] = "The tranmittions got mixed";
+        ActionInstructions[3] = "Were they identical?";
 
 
 		if (Random.value > 0.5f) {
@@ -25,59 +40,40 @@ public class TestMemmoryComparison : PatternTest {
 	
 	public void SameClicked(){
 		if (!Responsive) return;
+        SameButton.sprite = ButtonSprites[1];
+        SameButton.GetComponentInChildren<Text>().color = Color.white;
 
-		TestManager.Instance.AnswerReceived (wrongPattern == correctPattern);
+        TestManager.Instance.AnswerReceived (wrongPattern == correctPattern);
 
 	}
 	
 	public void DiffClicked(){
 		if (!Responsive) return;
-		
-		TestManager.Instance.AnswerReceived (wrongPattern != correctPattern);
+        
+        DiffButton.sprite = ButtonSprites[1];
+        DiffButton.GetComponentInChildren<Text>().color = Color.white;
+
+        TestManager.Instance.AnswerReceived (wrongPattern != correctPattern);
 
 	}
 
 	override public float DeliverPattern(){
 
-		BluetoothSequence = new byte[]{0xc3, 0xd0, 
-			0x05, //test num
-			channelByte1, 
-			0, //amp low
-			Settings.Instance.GetProperty(Settings.SettingsTypes.ShortPulse), 
-			(byte)numOfPulses, 
-			channelByte1, 
-			amp1, 
-			Settings.Instance.GetProperty(Settings.SettingsTypes.LongPulse), 
-			correctPattern, 
-			Settings.Instance.GetProperty(Settings.SettingsTypes.InterbeatPause), 
-			0xd2};
-
-		BluetoothProxy.Instance.DeliverPattern(BluetoothSequence);
+        BluetoothProxy.Instance.DeliverTest5(channelByte1, channelByte1, amp1, correctPattern, numOfPulses);
+        
 		Invoke ("DeliverSecondPattern", 3f);
 		return 6f;
 	}
 
 	private void DeliverSecondPattern(){
 
-		BluetoothSequence = new byte[]{0xc3, 0xd0, 
-			0x05, //test num
-			channelByte2, 
-			0, //amp low
-			Settings.Instance.GetProperty(Settings.SettingsTypes.ShortPulse), 
-			(byte)numOfPulses, 
-			channelByte2, 
-			amp2, 
-			Settings.Instance.GetProperty(Settings.SettingsTypes.LongPulse), 
-			wrongPattern, 
-			Settings.Instance.GetProperty(Settings.SettingsTypes.InterbeatPause), 
-			0xd2};
+        BluetoothProxy.Instance.DeliverTest5(channelByte2, channelByte2, amp2, wrongPattern, numOfPulses);
 
-		BluetoothProxy.Instance.DeliverPattern(BluetoothSequence);
 	}
 
 	override public void FreezeControls(){
-		SameButton.gameObject.SetActive (false);
-		DiffButton.gameObject.SetActive (false);
+		/*SameButton.gameObject.SetActive (false);
+		DiffButton.gameObject.SetActive (false);*/
 	}
 }
 

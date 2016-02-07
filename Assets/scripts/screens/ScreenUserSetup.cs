@@ -34,66 +34,67 @@ public class ScreenUserSetup : MonoBehaviour {
 
 	public void NextStep(){
 		switch (step) {
-		case Steps.None:
-			step = Steps.AssignA;
-			InstructionText.text = "Assign stimulator A to";
-			BodyPartField.gameObject.SetActive(true);
-			BodyPartField.text = "";
-			IntensitySlider.gameObject.SetActive(false);
-			IntensityTest.gameObject.SetActive(false);
-			SliderValText.gameObject.SetActive(false);
-			DifficultyGroup.gameObject.SetActive(false);
-			break;
-		case Steps.AssignA:
-			if (BodyPartField.text == ""){
+		    case Steps.None:
+			    step = Steps.AssignA;
+			    InstructionText.text = "Assign stimulator A to";
+			    BodyPartField.gameObject.SetActive(true);
+			    BodyPartField.text = "";
+			    IntensitySlider.gameObject.SetActive(false);
+			    IntensityTest.gameObject.SetActive(false);
+			    SliderValText.gameObject.SetActive(false);
+			    DifficultyGroup.gameObject.SetActive(false);
+			    break;
+		    case Steps.AssignA:
 
-			}else{
-				Settings.Instance.BodyPartA = BodyPartField.text;
+                if (BodyPartField.text == "") BodyPartField.text = "Body part A";
+
+                Settings.Instance.BodyPartA = BodyPartField.text;
 				step = Steps.AssignB;
 				InstructionText.text = "Assign timulator B to";
 				BodyPartField.text = "";
 				IntensitySlider.gameObject.SetActive(false);
 				IntensityTest.gameObject.SetActive(false);
-			}
+			    
 
-			break;
-		case Steps.AssignB:
-			if (BodyPartField.text == ""){
-			}else{
-				Settings.Instance.BodyPartB = BodyPartField.text;
-				step = Steps.TestA;
-				BodyPartField.gameObject.SetActive(false);
-				InstructionText.text = "Adjust intensity level of stimulator A"; 
-				IntensitySlider.gameObject.SetActive(true);
-				IntensityTest.gameObject.SetActive(true);
-				IntensitySlider.value = Settings.Instance.AmplitudeA.CurrentGlobalVal;
-				SliderValText.gameObject.SetActive(true);
-				SliderValText.text = IntensitySlider.value.ToString();
-			}
-			break;
-		case Steps.TestA:
-			step = Steps.TestB;
-			InstructionText.text = "Adjust intensity level of stimulator B"; 
-			IntensitySlider.gameObject.SetActive(true);
-			IntensityTest.gameObject.SetActive(true);
-			IntensitySlider.value = Settings.Instance.AmplitudeB.CurrentGlobalVal;
-			SliderValText.text = IntensitySlider.value.ToString();
-			break;
-		case Steps.TestB:
-			step = Steps.Diff;
-			InstructionText.text = "Set Difficulty"; 
-			IntensitySlider.gameObject.SetActive(false);
-			IntensityTest.gameObject.SetActive(false);
-			SliderValText.gameObject.SetActive(false);
-			DifficultyGroup.gameObject.SetActive(true);
+			    break;
+		    case Steps.AssignB:
 
-			DiffToggles[Settings.Instance.CurrentDifficulty].isOn = true;
-			DiffToggleGroup.NotifyToggleOn(DiffToggles[Settings.Instance.CurrentDifficulty]);
+                if (BodyPartField.text == "") BodyPartField.text = "Body part B";
 
-			break;
-		case Steps.Diff:
-			FlowManager.Instance.CalibrationEnded();
-			break;
+                Settings.Instance.BodyPartB = BodyPartField.text;
+			    step = Steps.TestA;
+			    BodyPartField.gameObject.SetActive(false);
+			    InstructionText.text = "Adjust intensity level of stimulator A"; 
+			    IntensitySlider.gameObject.SetActive(true);
+			    IntensityTest.gameObject.SetActive(true);
+			    IntensitySlider.value = Settings.Instance.AmplitudeA.CurrentGlobalVal;
+			    SliderValText.gameObject.SetActive(true);
+			    SliderValText.text = IntensitySlider.value.ToString();
+			
+			    break;
+		    case Steps.TestA:
+			    step = Steps.TestB;
+			    InstructionText.text = "Adjust intensity level of stimulator B"; 
+			    IntensitySlider.gameObject.SetActive(true);
+			    IntensityTest.gameObject.SetActive(true);
+			    IntensitySlider.value = Settings.Instance.AmplitudeB.CurrentGlobalVal;
+			    SliderValText.text = IntensitySlider.value.ToString();
+			    break;
+		    case Steps.TestB:
+			    step = Steps.Diff;
+			    InstructionText.text = "Set Difficulty"; 
+			    IntensitySlider.gameObject.SetActive(false);
+			    IntensityTest.gameObject.SetActive(false);
+			    SliderValText.gameObject.SetActive(false);
+			    DifficultyGroup.gameObject.SetActive(true);
+
+			    DiffToggles[Settings.Instance.CurrentDifficulty].isOn = true;
+			    DiffToggleGroup.NotifyToggleOn(DiffToggles[Settings.Instance.CurrentDifficulty]);
+
+			    break;
+		    case Steps.Diff:
+			    FlowManager.Instance.CalibrationEnded();
+			    break;
 		}
 	}
 

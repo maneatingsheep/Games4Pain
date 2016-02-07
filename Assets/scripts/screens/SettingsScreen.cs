@@ -10,10 +10,8 @@ public class SettingsScreen : MonoBehaviour {
 	public Dropdown Drop;
 	public Text Descrition;
 
-	public List<Slider> Sliders;
-	public List<InputField> Texts;
-
-	private bool _isAutofilling = false;
+	public List<SettingSlider> Sliders;
+	
 
 	private List<Settings.Setting> _settingsList = new List<Settings.Setting>();
 
@@ -21,7 +19,11 @@ public class SettingsScreen : MonoBehaviour {
 
 		Instance = this;
 
-		Drop.options.Clear ();
+        foreach (SettingSlider slider in Sliders) {
+            slider.Init();
+        }
+
+        Drop.options.Clear ();
 
 		foreach(KeyValuePair<Settings.SettingsTypes, Settings.Setting> setting in Settings.Instance.SettingsDict){
 			Dropdown.OptionData item = new Dropdown.OptionData();
@@ -32,7 +34,8 @@ public class SettingsScreen : MonoBehaviour {
 
 		Drop.value = 1;
 		Drop.value = 0;
-		FillData (_settingsList [Drop.value]);
+		
+        
 	}
 
 	public void DropChanged(){
@@ -40,77 +43,81 @@ public class SettingsScreen : MonoBehaviour {
 	}
 
 	private void FillData(Settings.Setting setting){
-		_isAutofilling = true;
+		
 		Descrition.text = setting.Description;
 		for (int i = 0; i < Sliders.Count; i++) {
-			Sliders[i].minValue = setting.MinVal;
-			Sliders[i].maxValue = setting.MaxVal;
+            Sliders[i].SetMinMax(setting.MinVal, setting.MaxVal);
+            
 			switch (setting.scope){
-			case Settings.Setting.SettingScope.Global:
-				if (i == 0){
-					Sliders[i].value = setting.CurrentGlobalVal;
-					Sliders[i].gameObject.SetActive(true);
-					Texts[i].gameObject.SetActive(true);
-				}else{
-					Sliders[i].gameObject.SetActive(false);
-					Texts[i].gameObject.SetActive(false);
-				}
-				break;
-			case Settings.Setting.SettingScope.Difficulty:
-
-				Sliders[i].value = setting.Difficulties[i].CurrentVal;
-
-				Sliders[i].gameObject.SetActive(true);
-				Texts[i].gameObject.SetActive(true);
-
-				break;
-			case Settings.Setting.SettingScope.Array:
-				if (i < setting.Difficulties.Length){
-					Sliders[i].value = setting.Difficulties[i].CurrentVal;
+			    case Settings.Setting.SettingScope.Global:
+				    if (i == 0){
+                        Sliders[i].SetValue(setting.CurrentGlobalVal, setting.Testable);
+                    } else{
+                        Sliders[i].Disabple();
 					
-					Sliders[i].gameObject.SetActive(true);
-					Texts[i].gameObject.SetActive(true);
-				}else{
-					Sliders[i].gameObject.SetActive(false);
-					Texts[i].gameObject.SetActive(false);
-				}
-				break;
+				    }
+				    break;
+			    case Settings.Setting.SettingScope.Difficulty:
+                    Sliders[i].SetValue(setting.Difficulties[i].CurrentVal, setting.Testable);
+				    break;
+			    case Settings.Setting.SettingScope.Array:
+				    if (i < setting.Difficulties.Length){
+					    Sliders[i].SetValue(setting.Difficulties[i].CurrentVal, setting.Testable);
+				    }else{
+                        Sliders[i].Disabple();
+				    }
+				    break;
 			}
-
-			Texts[i].text = Sliders[i].value.ToString();
+            
 		}
-
-		_isAutofilling = false;
+        
 	}
 
-	public void SliderMoved(Slider slider){
-		if (_isAutofilling) return;
-
-		int sliderIndex = Sliders.IndexOf (slider);
-		Texts[sliderIndex].text = slider.value.ToString();
-
-		UpfateRelevantSetting (sliderIndex, (byte)slider.value);
+	public void SettingChanged(SettingSlider slider){
+		
+		UpfateRelevantSetting (Sliders.IndexOf(slider), slider.value);
 	}
 
-	public void ValueInserted(InputField field){
-		_isAutofilling = true;
+    public void SettingTested(SettingSlider slider) {
+        SettingTested(_settingsList[Drop.value], Sliders.IndexOf(slider));
+    }
 
-		int sliderIndex = Texts.IndexOf (field);
+    public void SettingTested(Settings.Setting setting, int testedDiff) {
+        int diff = Settings.Instance.CurrentDifficulty;
+        Settings.Instance.CurrentDifficulty = testedDiff;
 
-		byte val = byte.Parse (field.text);
+        switch (setting.type) {
+            case Settings.SettingsTypes.ShortPulse:
+                BluetoothProxy.Instance.DeliverTest5(1, 1, Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeA), 0, 1);
+                break;
+            case Settings.SettingsTypes.LongPulse:
+                BluetoothProxy.Instance.DeliverTest5(1, 1, Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeA), 1, 1);
+                break;
+            case Settings.SettingsTypes.InterbeatPause:
+                BluetoothProxy.Instance.DeliverTest5(1, 1, Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeA), 3, 2);
+                break;
+            case Settings.SettingsTypes.TemporalJudjmentPulseLength:
+                BluetoothProxy.Instance.DeliverTest2(1, 1, Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeA), Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeB));
+                break;
+            case Settings.SettingsTypes.TemporalJudjmentDelay:
+                BluetoothProxy.Instance.DeliverTest2(1, 1, Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeA), Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeB));
+                break;
+            case Settings.SettingsTypes.DelayBetweenQueAndStimulation:
+                break;
+            case Settings.SettingsTypes.AmplitudeA:
+                BluetoothProxy.Instance.DeliverTest5(1, 1, Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeA), 1, 1);
+                break;
+            case Settings.SettingsTypes.AmplitudeB:
+                BluetoothProxy.Instance.DeliverTest5(2, 2, Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeB), 1, 1);
+                break;
+        }
 
-		val = (byte)Mathf.Max (val, (byte)Sliders [Texts.IndexOf (field)].minValue);
-		val = (byte)Mathf.Min (val, (byte)Sliders [Texts.IndexOf (field)].maxValue);
+        Settings.Instance.CurrentDifficulty = diff;
 
-		field.text = val.ToString ();
-		Sliders [sliderIndex].value = val;
+    }
 
-		UpfateRelevantSetting (sliderIndex, val);
 
-		_isAutofilling = false;
-	}
-
-	private void UpfateRelevantSetting(int index, byte value){
+    private void UpfateRelevantSetting(int index, byte value){
 		if (_settingsList [Drop.value].scope == Settings.Setting.SettingScope.Global && index ==  0) {
 			_settingsList [Drop.value].CurrentGlobalVal = value;
 		} else {

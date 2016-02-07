@@ -3,7 +3,7 @@ using System.Collections;
 
 public class PatternTest : BasicTest {
 		
-	protected int numOfPulses = 0;
+	protected byte numOfPulses = 0;
 	protected byte correctPattern = 0;
 	protected byte wrongPattern = 0;
 	

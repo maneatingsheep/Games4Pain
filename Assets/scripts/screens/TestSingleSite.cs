@@ -10,25 +10,19 @@ public class TestSingleSite : PatternRecognitionTest {
 	override public void Reset(){
 		base.Reset ();
 
-		Instruction = "Pay attention to your " + bodyPart1;
 
+        Instructions[0] = "";
+        Instructions[1] = "";
+        Instructions[2] = "Pay attention to your";
+        Instructions[3] = bodyPart1;
+        
+        
 	}
 
 	override public float DeliverPattern(){
-		BluetoothSequence = new byte[]{0xc3, 0xd0, 
-			0x05, //test num
-			channelByte1, 
-			0, //amp low
-			Settings.Instance.GetProperty(Settings.SettingsTypes.ShortPulse), 
-			(byte)numOfPulses, 
-			channelByte1, 
-			amp1, 
-			Settings.Instance.GetProperty(Settings.SettingsTypes.LongPulse), 
-			correctPattern, 
-			Settings.Instance.GetProperty(Settings.SettingsTypes.InterbeatPause), 
-			0xd2};
 
-		BluetoothProxy.Instance.DeliverPattern(BluetoothSequence);
+        BluetoothProxy.Instance.DeliverTest5(channelByte1, channelByte1, amp1, correctPattern, numOfPulses);
+        
 		return 3f;
 	}
 

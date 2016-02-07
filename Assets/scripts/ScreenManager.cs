@@ -13,6 +13,7 @@ public class ScreenManager : MonoBehaviour {
 	public MainMenuScreen MainMenuScreenInst;
 	public ScreenUserSetup ScreenUserSetupInst;
 	public TestManager TestManagerInst;
+	public Conclusion ConclusionInst;
 
 	public SettingsScreen SettingsScreenInst;
 	public Image ConfirmationPopoupInst;
@@ -57,8 +58,10 @@ public class ScreenManager : MonoBehaviour {
 			MainMenuScreenInst.gameObject.SetActive (screen == Screens.MainMenu);
 			ScreenUserSetupInst.gameObject.SetActive (screen == Screens.Instruction);
 			TestManagerInst.gameObject.SetActive (screen == Screens.Game);
+            ConclusionInst.gameObject.SetActive(screen == Screens.End);
 
-			BackButt.gameObject.SetActive (screen != Screens.MainMenu);
+
+            BackButt.gameObject.SetActive (screen != Screens.MainMenu);
 		}
 	}
 

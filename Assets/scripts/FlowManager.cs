@@ -59,7 +59,8 @@ public class FlowManager : MonoBehaviour {
 
 	public void StartGame(){
 		ScreenManager.Instance.SetScreen(ScreenManager.Screens.Game);
-		TestManager.Instance.NextTest ();
+        TestManager.Instance.Reset();
+        TestManager.Instance.NextTest ();
 		TestManager.Instance.StartTest ();
 
 	}
@@ -71,6 +72,7 @@ public class FlowManager : MonoBehaviour {
 			TestManager.Instance.StartTest ();
 		} else {
 			ScreenManager.Instance.SetScreen(ScreenManager.Screens.End);
+            Conclusion.Instance.ShowConclusion(TestManager.Instance.CompletedTests);
 		}
 	}
 
@@ -103,7 +105,11 @@ public class FlowManager : MonoBehaviour {
 
 	}
 
-	public void QuitClicked(){
+    public void ConclusionOkclicked() {
+        ScreenManager.Instance.SetScreen(ScreenManager.Screens.MainMenu);
+    }
+
+    public void QuitClicked(){
 		_pendingAction = ConfirmedActions.Quit;
 		ScreenManager.Instance.ShowPopoup (ScreenManager.Popups.Confirmation);
 	}

@@ -4,57 +4,67 @@ using UnityEngine.UI;
 
 public class TestTemporalOrder : PatternTest {
 
-	public Button ChannelAButt;
-	public Button ChannelBButt;
+	public Image ChannelAButt;
+	public Image ChannelBButt;
 
-	private byte pulseLen;
+    public Sprite[] ButtonSprites;
+
+    private byte pulseLen;
 
 	override public void Reset(){
 		base.Reset ();
-		
-		Instruction = "Pay attention to your " + bodyPart1 + " and " + bodyPart2;
+
+        Instructions[0] = "Pay attention to your";
+        Instructions[1] = bodyPart1;
+        Instructions[2] = "and your";
+        Instructions[3] = bodyPart2;
+
+        ActionInstructions[0] = "";
+        ActionInstructions[1] = "";
+        ActionInstructions[2] = "The transmittions weren't in sync";
+        ActionInstructions[3] = "Whitch one came first?";
+
+        ChannelAButt.sprite = ButtonSprites[0];
+        ChannelBButt.sprite = ButtonSprites[0];
+        ChannelAButt.GetComponentInChildren<Text>().color = Color.black;
+        ChannelBButt.GetComponentInChildren<Text>().color = Color.black;
+
+        ChannelAButt.GetComponentInChildren<Text>().text = Settings.Instance.BodyPartA;
+        ChannelBButt.GetComponentInChildren<Text>().text = Settings.Instance.BodyPartB;
 
 
-		ChannelAButt.gameObject.SetActive (true);
+        ChannelAButt.gameObject.SetActive (true);
 		ChannelBButt.gameObject.SetActive (true);
 	}
 
 	override public float DeliverPattern(){
-		
-		BluetoothSequence = new byte[]{0xc3, 0xd0, 
-			0x02, //test num
-			channelByte1, 
-			amp1,
-			Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudjmentPulseLength), 
-			Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudjmentDelay), 
-			channelByte2, 
-			amp2,
-			Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudjmentPulseLength), 
-			0, //delay - not used
-			0, //time between pulses in 15mSec intervals - not used
-			0xd2};
-		
-		BluetoothProxy.Instance.DeliverPattern(BluetoothSequence);
+
+        BluetoothProxy.Instance.DeliverTest2(channelByte1, channelByte2, amp1, amp2);
+        
 		return 4f;
 	}
 
 	public void ChanAClicked(){
 		if (!Responsive) return;
-		
-		TestManager.Instance.AnswerReceived (channel == BluetoothProxy.Channels.ChannelA);
+        ChannelAButt.sprite = ButtonSprites[1];
+        ChannelAButt.GetComponentInChildren<Text>().color = Color.white;
+
+        TestManager.Instance.AnswerReceived (channel == BluetoothProxy.Channels.ChannelA);
 
 	}
 	
 	public void ChanBClicked(){
 		if (!Responsive) return;
-		
-		TestManager.Instance.AnswerReceived (channel == BluetoothProxy.Channels.ChannelB);
+        ChannelBButt.sprite = ButtonSprites[1];
+        ChannelBButt.GetComponentInChildren<Text>().color = Color.white;
+
+        TestManager.Instance.AnswerReceived (channel == BluetoothProxy.Channels.ChannelB);
 
 	}
 
 
 	override public void FreezeControls(){
-		ChannelAButt.gameObject.SetActive (false);
-		ChannelBButt.gameObject.SetActive (false);
+		/*ChannelAButt.gameObject.SetActive (false);
+		ChannelBButt.gameObject.SetActive (false);*/
 	}
 }
