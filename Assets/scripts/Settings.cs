@@ -35,7 +35,7 @@ public class Settings : MonoBehaviour {
 
 	public int CurrentDifficulty;
 
-	private int _totalDifficulties = 6;
+    public readonly int TotalDifficulties = 6;
 
 	public Dictionary<SettingsTypes, Setting> SettingsDict = new Dictionary<SettingsTypes, Setting>();
 
@@ -60,7 +60,7 @@ public class Settings : MonoBehaviour {
 		SettingsDict [SettingsTypes.AmplitudeB] = AmplitudeB;
 
 		if (PlayerPrefs.HasKey ("CurrentDifficulty")) {
-			for (int i = 0; i < _totalDifficulties; i++) {
+			for (int i = 0; i < TotalDifficulties; i++) {
 				ShortPulse.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("ShortPulse" + (i + 1)));
 				LongPulse.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("LongPulse" + (i + 1)));
 				InterbeatPause.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("InterbeatPause" + (i + 1)));
@@ -86,7 +86,7 @@ public class Settings : MonoBehaviour {
 
 
 		} else {
-			for (int i = 0; i < _totalDifficulties; i++) {
+			for (int i = 0; i < TotalDifficulties; i++) {
 				ShortPulse.Difficulties[i].CurrentVal = ShortPulse.Difficulties[i].DefaultVal;
 				LongPulse.Difficulties[i].CurrentVal = LongPulse.Difficulties[i].DefaultVal;
 				InterbeatPause.Difficulties[i].CurrentVal = InterbeatPause.Difficulties[i].DefaultVal;
@@ -115,7 +115,7 @@ public class Settings : MonoBehaviour {
 	}
 
 	public void SaveSettings(){
-		for (int i = 0; i < _totalDifficulties; i++) {
+		for (int i = 0; i < TotalDifficulties; i++) {
 			PlayerPrefs.SetInt ("ShortPulse" + (i + 1), ShortPulse.Difficulties[i].CurrentVal);
 			PlayerPrefs.SetInt ("LongPulse" + (i + 1), LongPulse.Difficulties[i].CurrentVal);
 			PlayerPrefs.SetInt ("InterbeatPause" + (i + 1), InterbeatPause.Difficulties[i].CurrentVal);

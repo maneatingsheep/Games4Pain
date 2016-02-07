@@ -41,12 +41,12 @@ public class Conclusion : MonoBehaviour {
 
         float success = (float)correctQuestions / totalQuestions;
 
-        if (success < 0.5f) {
+        if (success < 0.5f && Settings.Instance.CurrentDifficulty > 0) {
             Recomendation.text = "Mission failed\nConsider selecting an easier difficulty";
-        } else if (success < 0.5f) {
-            Recomendation.text = "Good work. You got home safe\nKeep working";
-        } else if (success < 0.75f) {
+        } else if (success > 0.75f && Settings.Instance.CurrentDifficulty < Settings.Instance.TotalDifficulties - 1) {
             Recomendation.text = "Great job!\nConsider selecting a harder difficulty";
+        } else if (success < 0.75f) {
+            Recomendation.text = "Good work. You got home safe\nKeep working";
         }
     }
 
