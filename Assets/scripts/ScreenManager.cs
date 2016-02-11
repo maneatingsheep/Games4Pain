@@ -4,29 +4,31 @@ using System.Collections;
 
 public class ScreenManager : MonoBehaviour {
 
-	public enum Screens {MainMenu, Instruction, Game, End, Last};
-	public enum Popups {Settings, Confirmation};
+	public enum Screens {MainMenu, Game, End, Last};
+	public enum Popups {Settings, Confirmation, Password, UserSetup };
 
 
 	public Text ErrorText;
 
+    //screens
 	public MainMenuScreen MainMenuScreenInst;
-	public ScreenUserSetup ScreenUserSetupInst;
 	public TestManager TestManagerInst;
 	public Conclusion ConclusionInst;
 
+    //popups
 	public SettingsScreen SettingsScreenInst;
 	public Image ConfirmationPopoupInst;
+	public Image PasswordPopoupInst;
+    public ScreenUserSetup ScreenUserSetupInst;
 
 
 
-
-	public Button SettingsButt;
+    public Button SettingsButt;
 	public Button BackButt;
 
 	public static ScreenManager Instance;
 
-	private Screens _currentScreen;
+    public Screens CurrentScreen;
 	private Screens _lastScreen;
 
 
@@ -42,7 +44,8 @@ public class ScreenManager : MonoBehaviour {
 
 		SettingsScreenInst.gameObject.SetActive (false);
 		ConfirmationPopoupInst.gameObject.SetActive (false);
-	}
+		PasswordPopoupInst.gameObject.SetActive (false);
+    }
 
 	public void ShowError(string error){
 		ErrorText.text = error;
@@ -53,45 +56,60 @@ public class ScreenManager : MonoBehaviour {
 			SetScreen(_lastScreen);
 		} else {
 
-			_lastScreen = _currentScreen;
-			_currentScreen = screen;
+			_lastScreen = CurrentScreen;
+            CurrentScreen = screen;
+
 			MainMenuScreenInst.gameObject.SetActive (screen == Screens.MainMenu);
-			ScreenUserSetupInst.gameObject.SetActive (screen == Screens.Instruction);
 			TestManagerInst.gameObject.SetActive (screen == Screens.Game);
+            TestProgress.Instance.gameObject.SetActive(screen == Screens.Game);
             ConclusionInst.gameObject.SetActive(screen == Screens.End);
-
-
+            
             BackButt.gameObject.SetActive (screen != Screens.MainMenu);
 		}
 	}
 
-	public void ShowPopoup(Popups popup){
+	public void ShowPopoup(Popups popup, bool hideWindows = false) {
 		SettingsButt.gameObject.SetActive (false);
 		BackButt.gameObject.SetActive (false);
 
 		ScreenUserSetupInst.gameObject.SetActive (false);
 		TestManagerInst.gameObject.SetActive (false);
 
-
+        if (hideWindows) {
+            MainMenuScreenInst.gameObject.SetActive(false);
+            TestManagerInst.gameObject.SetActive(false);
+            TestProgress.Instance.gameObject.SetActive(false);
+            ConclusionInst.gameObject.SetActive(false);
+        }
 
 		switch (popup) {
-		case Popups.Settings:
-			SettingsScreenInst.gameObject.SetActive (true);
-			break;
-		case Popups.Confirmation:
-			ConfirmationPopoupInst.gameObject.SetActive (true);
-			break;
-		}
+		    case Popups.Settings:
+			    SettingsScreenInst.gameObject.SetActive (true);
+			    break;
+		    case Popups.Confirmation:
+			    ConfirmationPopoupInst.gameObject.SetActive (true);
+			    break;
+            case Popups.Password:
+                PasswordPopoupInst.gameObject.SetActive(true);
+                PasswordPopoupInst.GetComponentInChildren<InputField>().text = "";
+                break;
+            case Popups.UserSetup:
+                ScreenUserSetupInst.gameObject.SetActive(true);
+                break;
+                
+        }
 
 	}
 
 	public void ClosePopup(){
 		SettingsButt.gameObject.SetActive (true);
-		BackButt.gameObject.SetActive (_currentScreen != Screens.MainMenu);
+		BackButt.gameObject.SetActive (CurrentScreen != Screens.MainMenu);
 
 		SettingsScreenInst.gameObject.SetActive (false);
 		ConfirmationPopoupInst.gameObject.SetActive (false);
+        PasswordPopoupInst.gameObject.SetActive (false);
+        ScreenUserSetupInst.gameObject.SetActive(false);
 
-		SetScreen (_currentScreen);
+        SetScreen (CurrentScreen);
 	}
 }

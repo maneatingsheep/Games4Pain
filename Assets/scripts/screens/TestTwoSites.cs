@@ -19,7 +19,7 @@ public class TestTwoSites : PatternRecognitionTest {
 
         BluetoothProxy.Instance.DeliverTest5(channelByte1, channelByte2, amp1, correctPattern, numOfPulses);
 
-		return 3f;
-	}
+        return correctPatternTime + 1f;
+    }
 	
 }

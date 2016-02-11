@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class FlowManager : MonoBehaviour {
 
-	public enum ConfirmedActions{MainMenu, Quit};
+	public enum ConfirmedActions{MainMenu, Quit, Settings};
 
 	public static FlowManager Instance;
 
@@ -13,8 +14,10 @@ public class FlowManager : MonoBehaviour {
 	public BluetoothProxy BluetoothProxyInst;
 
 	private ConfirmedActions _pendingAction;
+    private bool _passwordCleared = false;
+    private bool _playAfterSetup = false;
 
-	void Awake () {
+    void Awake () {
 		Instance = this;
 	}
 
@@ -28,15 +31,15 @@ public class FlowManager : MonoBehaviour {
 
 		ScreenManager.Instance.SetScreen(ScreenManager.Screens.MainMenu);
 
-		BluetoothProxy.Instance.Scan ();
-
-
+		//BluetoothProxy.Instance.Scan ();
+        
 	}
 
 	public void Play(){
-		BluetoothProxy.Instance.UseRealDevice = BluetoothProxy.Instance.DeviceFound;
+
 		if (Settings.Instance.CalibrationNeeded) {
-			ShowInstruction ();
+            _playAfterSetup = true;
+            StartUserSetup();
 		} else {
 			StartGame();
 		}
@@ -45,17 +48,30 @@ public class FlowManager : MonoBehaviour {
 	public void ResumeGame(){
 		MainMenuScreen.Instance.EnableResume(false);
 		ScreenManager.Instance.SetScreen(ScreenManager.Screens.Last);
+        TestManager.Instance.Resume();
+    }
+
+	public void StartUserSetup(){
+        if (ScreenManager.Instance.CurrentScreen == ScreenManager.Screens.Game) {
+            TestManager.Instance.Pause();
+        }
+		ScreenManager.Instance.ShowPopoup(ScreenManager.Popups.UserSetup, true);
+		ScreenUserSetup.Instance.StartUserSetup();
 	}
 
-	public void ShowInstruction(){
-		ScreenManager.Instance.SetScreen(ScreenManager.Screens.Instruction);
-		ScreenUserSetup.Instance.StartCalibration();
-	}
-
-	public void CalibrationEnded(){
+	public void UserSetupEnded(){
 		Settings.Instance.CalibrationDone ();
-		StartGame ();
-	}
+        ScreenManager.Instance.ClosePopup();
+
+        if (ScreenManager.Instance.CurrentScreen == ScreenManager.Screens.Game) {
+            TestManager.Instance.Resume();
+        }
+        if (_playAfterSetup) {
+            StartGame();
+        }
+        
+        _playAfterSetup = false;
+    }
 
 	public void StartGame(){
 		ScreenManager.Instance.SetScreen(ScreenManager.Screens.Game);
@@ -64,8 +80,7 @@ public class FlowManager : MonoBehaviour {
 		TestManager.Instance.StartTest ();
 
 	}
-
-
+    
 
 	public void TestFinished(){
 		if (TestManager.Instance.NextTest ()) {
@@ -77,7 +92,11 @@ public class FlowManager : MonoBehaviour {
 	}
 
 	public void SettingsClicked(){
-		ScreenManager.Instance.ShowPopoup (ScreenManager.Popups.Settings);
+        if (_passwordCleared) {
+		    ScreenManager.Instance.ShowPopoup (ScreenManager.Popups.Settings, true);
+        } else {
+            ScreenManager.Instance.ShowPopoup(ScreenManager.Popups.Password);
+        }
 	}
 
 	public void BackClicked(){
@@ -89,21 +108,30 @@ public class FlowManager : MonoBehaviour {
 		ScreenManager.Instance.ClosePopup ();
 
 		switch (_pendingAction) {
-		case ConfirmedActions.MainMenu:
+		    case ConfirmedActions.MainMenu:
 
-			if (confirmed) {
-				MainMenuScreen.Instance.EnableResume(true);
-				ScreenManager.Instance.SetScreen(ScreenManager.Screens.MainMenu);
-			}
-			break;
-		case ConfirmedActions.Quit:
-			if (confirmed) {
-				Application.Quit ();
-			}
-			break;
+			    if (confirmed) {
+				    MainMenuScreen.Instance.EnableResume(true);
+				    ScreenManager.Instance.SetScreen(ScreenManager.Screens.MainMenu);
+                    TestManager.Instance.Pause();
+                }
+			    break;
+		    case ConfirmedActions.Quit:
+			    if (confirmed) {
+				    Application.Quit ();
+			    }
+			    break;
 		}
 
 	}
+
+    public void PasswordConfirmed(InputField passField) {
+        ScreenManager.Instance.ClosePopup();
+        if (passField.text.ToLower() == "admin") {
+            _passwordCleared = true;
+            ScreenManager.Instance.ShowPopoup(ScreenManager.Popups.Settings, true);
+        }
+    }
 
     public void ConclusionOkclicked() {
         ScreenManager.Instance.SetScreen(ScreenManager.Screens.MainMenu);

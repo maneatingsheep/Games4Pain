@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using Holoville.HOTween;
 using System.Collections.Generic;
+using System.Linq;
 
 public class TestManager : MonoBehaviour {
 
@@ -44,6 +45,11 @@ public class TestManager : MonoBehaviour {
 
     public List<CompletedTest> CompletedTests = new List<CompletedTest>();
 
+    private float _lasttimeOfInvoke;
+    private float _lastInvoketime;
+    private string _lastInvokeMethod;
+    private float _lastRemaningInvoke;
+
     void Awake () {
 		Instance = this;
 	}
@@ -55,6 +61,8 @@ public class TestManager : MonoBehaviour {
     public void Reset() {
         currentTestIndex = -1;
         _currentVisibleTest = -1;
+        _totalVisibleTests = 0;
+
         SetImage(null);
 
         for (int i = 0; i < TestSeq.Length; i++) {
@@ -88,8 +96,8 @@ public class TestManager : MonoBehaviour {
             CompletedTests.Add(new CompletedTest() { TestType = TestSeq[currentTestIndex] });
             foreach (Transform child in transform) {
 				if (child.GetComponent < BasicTest> () && CompareTestTypes(child.GetComponent<BasicTest> ().TestType, TestSeq [currentTestIndex])) {
-					currentTest = child.GetComponent<BasicTest> ();
-					currentTest.NumOfQuestions = Settings.Instance.GetProperty(Settings.SettingsTypes.QuestionsPerRound, currentTestIndex);
+					currentTest = child.GetComponents<BasicTest> ().First((b => b.TestType == TestSeq[currentTestIndex]));
+                    currentTest.NumOfQuestions = Settings.Instance.GetProperty(Settings.SettingsTypes.QuestionsPerRound, currentTestIndex);
                     CompletedTests[CompletedTests.Count - 1].CorrectQuestions = 0;
                     CompletedTests[CompletedTests.Count - 1].TotalQuestions = currentTest.NumOfQuestions;
                 }
@@ -129,7 +137,7 @@ public class TestManager : MonoBehaviour {
 		RewindCount.gameObject.SetActive (false);
 		RewindButt.gameObject.SetActive (false);
 
-		SetBackMode (TestManager.BackModes.TestBegin);
+		SetBackMode (BackModes.TestBegin);
 
         Instruction[0].text = "Sector " + (_currentVisibleTest + 1) + " / " + _totalVisibleTests;
         Instruction[1].text = "";
@@ -149,7 +157,7 @@ public class TestManager : MonoBehaviour {
         if (SkipTransitions) {
             StartQuaestion();
         } else {
-            Invoke("StartQuaestion", 6f);
+            DoInvoke("StartQuaestion", 6f);
         }
 		
 	}
@@ -182,7 +190,7 @@ public class TestManager : MonoBehaviour {
         if (SkipTransitions) {
             ShowInstruction();
         } else {
-            Invoke("ShowInstruction", 2f);
+            DoInvoke("ShowInstruction", 2f);
         }
 	}
 
@@ -195,7 +203,7 @@ public class TestManager : MonoBehaviour {
         if (SkipTransitions) {
             DeliverPattern();
         } else {
-            Invoke ("DeliverPattern", 2f);
+            DoInvoke("DeliverPattern", 2f);
         }
 
 	}
@@ -205,7 +213,7 @@ public class TestManager : MonoBehaviour {
         if (SkipTransitions) {
             ShowTestUI();
         } else {
-            Invoke ("ShowTestUI", currentTest.DeliverPattern());
+            DoInvoke("ShowTestUI", currentTest.DeliverPattern());
 
         }
 	}
@@ -250,7 +258,7 @@ public class TestManager : MonoBehaviour {
         if (SkipTransitions) {
             ShowResult();
         } else {
-            Invoke("ShowResult", 1f);
+            DoInvoke("ShowResult", 1f);
 
         }
 
@@ -271,7 +279,7 @@ public class TestManager : MonoBehaviour {
         if (SkipTransitions) {
             EndQuestion();
         } else {
-            Invoke("EndQuestion", 2f);
+            DoInvoke("EndQuestion", 2f);
 
         }
 	}
@@ -340,8 +348,28 @@ public class TestManager : MonoBehaviour {
 		RoundBack.sprite = sprite;
 	}
 
-    
-	
+    private void DoInvoke(string methodName, float time) {
+        _lastInvokeMethod = methodName;
+        _lastInvoketime = time;
+        _lasttimeOfInvoke = Time.time;
+        Invoke(methodName, time);
+    }
+
+    public void Pause() {
+        _lastRemaningInvoke = _lastInvoketime - (Time.time - _lasttimeOfInvoke);
+        if (_lastRemaningInvoke > 0) {
+            CancelInvoke(_lastInvokeMethod);
+            TestTRansitionInst.Pause();
+        }
+    }
+
+    public void Resume() {
+        if (_lastRemaningInvoke > 0) {
+            DoInvoke(_lastInvokeMethod, _lastRemaningInvoke);
+            TestTRansitionInst.Resume();
+        }
+    }
+
 }
 
 

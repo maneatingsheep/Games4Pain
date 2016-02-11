@@ -61,8 +61,8 @@ public class TestMemmoryComparison : PatternTest {
 
         BluetoothProxy.Instance.DeliverTest5(channelByte1, channelByte1, amp1, correctPattern, numOfPulses);
         
-		Invoke ("DeliverSecondPattern", 3f);
-		return 6f;
+		Invoke ("DeliverSecondPattern", correctPatternTime + 1f);
+		return correctPatternTime + wrongPatternTime + 2f;
 	}
 
 	private void DeliverSecondPattern(){

@@ -41,7 +41,7 @@ public class TestTemporalOrder : PatternTest {
 
         BluetoothProxy.Instance.DeliverTest2(channelByte1, channelByte2, amp1, amp2);
         
-		return 4f;
+		return 3f;
 	}
 
 	public void ChanAClicked(){

@@ -18,12 +18,14 @@ public class TestTRansition : MonoBehaviour {
 
     public Sprite MarkedStarSprite;
 
+    private Tweener ShipTweener;
+
     public void SetMap(int steps) {
         _steps = steps;
 
         for (int i = 0; i < _stars.Count; i++) {
             for (int j = 0; j < _stars[i].Count; j++) {
-                Destroy(_stars[i][j]);
+                Destroy(_stars[i][j].gameObject);
             }
         }
 
@@ -70,10 +72,18 @@ public class TestTRansition : MonoBehaviour {
 
         Vector3 offset = new Vector3(0, 50, 0);
 
-        HOTween.To(Spaceship.transform, 2.5f, new TweenParms().Prop("localPosition", _stars[_currentCol][targetStar].transform.localPosition + offset).Ease(EaseType.Linear).Delay(2));
+        ShipTweener = HOTween.To(Spaceship.transform, 2.5f, new TweenParms().Prop("localPosition", _stars[_currentCol][targetStar].transform.localPosition + offset).Ease(EaseType.Linear).Delay(2));
 
         if (doMark) {
             _stars[_currentCol][targetStar].sprite = MarkedStarSprite;
         }
+    }
+
+    public void Pause() {
+        if (ShipTweener != null) ShipTweener.Pause();
+    }
+
+    public void Resume() {
+        if (ShipTweener != null && !ShipTweener.isComplete) ShipTweener.Play();
     }
 }

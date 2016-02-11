@@ -21,9 +21,9 @@ public class TestSingleWithDistraction : PatternRecognitionTest {
 	override public float DeliverPattern(){
 
         BluetoothProxy.Instance.DeliverTest4(channelByte1, channelByte2, amp1, correctPattern, numOfPulses);
-        
-		return 3f;
-	}
+
+        return correctPatternTime + 1f;
+    }
 
 
 }

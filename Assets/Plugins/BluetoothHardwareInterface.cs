@@ -26,6 +26,10 @@ public class BluetoothLEHardwareInterface
 		CBAttributePermissionsWriteEncryptionRequired = 0x08,
 	};
 
+    public static void SubscribeCharacteristic(string devUID2, string serviceUID, string charUID, object p1, Action<string, byte[]> p2) {
+        throw new NotImplementedException();
+    }
+
 #if UNITY_IPHONE
 	[DllImport ("__Internal")]
 	private static extern void _iOSBluetoothLELog (string message);
@@ -96,7 +100,7 @@ public class BluetoothLEHardwareInterface
 	[DllImport ("__Internal")]
 	private static extern void _iOSBluetoothLEUpdateCharacteristicValue (string uuid, byte[] data, int length);
 #elif UNITY_ANDROID
-	static AndroidJavaObject _android = null;
+    static AndroidJavaObject _android = null;
 #endif
 
 	private static BluetoothDeviceScript bluetoothDeviceScript;

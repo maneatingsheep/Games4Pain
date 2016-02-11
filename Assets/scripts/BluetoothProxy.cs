@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class BluetoothProxy : MonoBehaviour {
 
@@ -8,49 +9,76 @@ public class BluetoothProxy : MonoBehaviour {
 	public static BluetoothProxy Instance;
 
 	private byte[] data;
-	//private BluetoothDeviceScript _bluetoothDeviceScript;
+	private BluetoothDeviceScript _bluetoothDeviceScript;
 	
 	private string _serviceUUID;
 	private string _characteristicUUID;
 	private string _deviceUID;
 
 	internal bool DeviceFound = false;
+    private bool _disconnected = false;
+    private bool _freeToSend = true;
 
-	internal bool UseRealDevice = true;
-
-	public void Init(){
+    public void Init(){
 
 		Instance = this;
 
-		/*_bluetoothDeviceScript = */BluetoothLEHardwareInterface.Initialize (
+		_bluetoothDeviceScript = BluetoothLEHardwareInterface.Initialize (
 			true, false, 
 			Scan, 
 		(e) => {ScreenManager.Instance.ShowError("Error: " + e);});
-
-	}
+        
+    }
 
 	public void Scan(){
-		MainMenuScreen.Instance.ShowScanning(); 
+		MainMenuScreen.Instance.ShowDeviceStatus("Scanning...");
+
 		BluetoothLEHardwareInterface.ScanForPeripheralsWithServices (null,(devUID1, devName)=>{
 			if (devName == "SRP-1"){
 				BluetoothLEHardwareInterface.StopScan();
 				_deviceUID = devUID1;
-				MainMenuScreen.Instance.ShowDeviceFound(devName); 
-				BluetoothLEHardwareInterface.ConnectToPeripheral(_deviceUID, null, null, 
+
+				MainMenuScreen.Instance.ShowDeviceStatus("Device Found - " + devName); 
+
+                BluetoothLEHardwareInterface.ConnectToPeripheral(_deviceUID, null, null, 
 				(devUID2, serviceUID, charUID) => {
-					if (charUID.Contains("2a2f")){
+					if (charUID.ToLower().Contains("2a2f")){
 						_serviceUUID = serviceUID;
-						_characteristicUUID = charUID/*"2A2F"*/;
-						DeviceFound = true;
-					}
-					
-				}, 
-				null);
+						_characteristicUUID = charUID;
+
+                        _freeToSend = true;
+                        DeviceFound = true;
+                        
+                    }
+
+                    if (charUID.ToLower().Contains("2a2e")) {
+                        BluetoothLEHardwareInterface.SubscribeCharacteristic(devUID2, serviceUID, charUID, null, 
+                            (name, data) => {
+                               if (data.Length == 2 && data[0] == 0x50 && data[1] == 0) {
+                                    _freeToSend = true;
+                                }
+                            });
+                    }
+
+
+                },
+                (device) => {
+                    _disconnected = true;
+                });
 			}
 		});
 	}
 
-	public void TestIntensity(Channels channel){
+    void Update() {
+        if (_disconnected) {
+            _disconnected = false;
+            MainMenuScreen.Instance.ShowDeviceStatus("Disconnected");
+            DeviceFound = false;
+            Scan();
+        }
+    }
+
+    public void TestIntensity(Channels channel){
 
 		data = new byte[]{0xC3, 0xD0, 0x05, 
 			(byte)((channel == Channels.ChannelA)?0x01:0x02), 
@@ -117,15 +145,18 @@ public class BluetoothProxy : MonoBehaviour {
 
 
     private void TransmitData(){
-		string str = "";
+        if (!_freeToSend) return;
+        _freeToSend = false;
+
+        string str = "";
 		for (int i = 0; i < data.Length; i++) {
 			str += " " + data[i].ToString();
 		}
 
         print(str);
+        
 
-		ScreenManager.Instance.ShowError(str);
-		if (UseRealDevice) {
+		if (DeviceFound) {
 			BluetoothLEHardwareInterface.WriteCharacteristic (_deviceUID, _serviceUUID, _characteristicUUID, data, data.Length, false, null);
 		}
 

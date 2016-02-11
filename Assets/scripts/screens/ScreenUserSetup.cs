@@ -27,7 +27,7 @@ public class ScreenUserSetup : MonoBehaviour {
 		Instance = this;
 	}
 
-	public void StartCalibration(){
+	public void StartUserSetup(){
 		step = Steps.None;
 		NextStep ();
 	}
@@ -93,7 +93,7 @@ public class ScreenUserSetup : MonoBehaviour {
 
 			    break;
 		    case Steps.Diff:
-			    FlowManager.Instance.CalibrationEnded();
+			    FlowManager.Instance.UserSetupEnded();
 			    break;
 		}
 	}

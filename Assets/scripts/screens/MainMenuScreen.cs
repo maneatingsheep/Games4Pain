@@ -17,13 +17,9 @@ public class MainMenuScreen : MonoBehaviour {
     public void ClearSettings() {
         PlayerPrefs.DeleteAll();
     }
-
-	public void ShowScanning(){
-		DeviceFoundText.text = "Scanning...";
-	}
-	
-	public void ShowDeviceFound(string deviceName){
-		DeviceFoundText.text = "Device Found - " + deviceName;
+    
+	public void ShowDeviceStatus(string status){
+        DeviceFoundText.text = status;
 	}
 
 	public void EnableResume(bool value){

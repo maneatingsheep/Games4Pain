@@ -6,8 +6,11 @@ public class PatternTest : BasicTest {
 	protected byte numOfPulses = 0;
 	protected byte correctPattern = 0;
 	protected byte wrongPattern = 0;
-	
-	protected int mistake;
+
+    protected float correctPatternTime;
+    protected float wrongPatternTime;
+
+    protected int mistake;
 
 	protected string bodyPart1;
 	protected string bodyPart2;
@@ -77,6 +80,28 @@ public class PatternTest : BasicTest {
 		mistake = Random.Range (0, numOfPulses);
 		wrongPattern = (byte)(correctPattern ^ (1 << mistake));
 
-	}
+        correctPatternTime = CalculatePatternTime(correctPattern, numOfPulses);
+        wrongPatternTime = CalculatePatternTime(wrongPattern, numOfPulses);
+    }
+
+
+    private float CalculatePatternTime(byte pattern, byte numOfPulses) {
+
+        float res = 0;
+
+        for (int i = 0; i < numOfPulses; i++) {
+
+            if ((pattern & (1 << i)) == 0) {
+                res += Settings.Instance.GetProperty(Settings.SettingsTypes.ShortPulse) * 0.015f;
+            } else {
+                res += Settings.Instance.GetProperty(Settings.SettingsTypes.LongPulse) * 0.015f;
+            }
+
+        }
+
+        res += Settings.Instance.GetProperty(Settings.SettingsTypes.InterbeatPause) * 0.015f * (numOfPulses - 1);
+
+        return res;
+    }
 }
 
