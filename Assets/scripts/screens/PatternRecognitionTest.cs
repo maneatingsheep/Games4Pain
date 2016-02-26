@@ -24,10 +24,7 @@ public class PatternRecognitionTest : PatternTest {
 		}
 
 
-        ActionInstructions[0] = "";
-        ActionInstructions[1] = "";
-        ActionInstructions[2] = "The transmittion contains an error";
-        ActionInstructions[3] = "Find it";
+        ActionInstruction = "Which part of this pattern is <b>different</b> than what you felt?";
 
     }
 

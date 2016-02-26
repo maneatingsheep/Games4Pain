@@ -54,15 +54,15 @@ public class PatternTest : BasicTest {
 		
 
 		if (channel == BluetoothProxy.Channels.ChannelA) {
-			bodyPart1 = Settings.Instance.BodyPartA;
-			bodyPart2 = Settings.Instance.BodyPartB;
+			bodyPart1 = Settings.Instance.BodyPartTreated.Name.ToUpper();
+			bodyPart2 = Settings.Instance.BodyPartHealthy.Name.ToUpper();
 			channelByte1 = 0x01;
 			channelByte2 = 0x02;
 			amp1 = Settings.Instance.AmplitudeA.CurrentGlobalVal;
 			amp2 = Settings.Instance.AmplitudeB.CurrentGlobalVal;
 		} else {
-			bodyPart1 = Settings.Instance.BodyPartB;
-			bodyPart2 = Settings.Instance.BodyPartA;
+			bodyPart1 = Settings.Instance.BodyPartHealthy.Name.ToUpper();
+			bodyPart2 = Settings.Instance.BodyPartTreated.Name.ToUpper();
 			channelByte1 = 0x02;
 			channelByte2 = 0x01;
 			amp1 = Settings.Instance.AmplitudeB.CurrentGlobalVal;

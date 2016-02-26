@@ -11,10 +11,7 @@ public class TestSingleSite : PatternRecognitionTest {
 		base.Reset ();
 
 
-        Instructions[0] = "";
-        Instructions[1] = "";
-        Instructions[2] = "Pay attention to your";
-        Instructions[3] = bodyPart1;
+        Instruction = "<b>" + bodyPart1 + "</b>";
         
         
 	}

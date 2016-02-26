@@ -1,22 +1,23 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public class Settings : MonoBehaviour {
 
 	public static Settings Instance;
 
-	public enum SettingsTypes{ShortPulse, LongPulse, InterbeatPause, TemporalJudjmentPulseLength,
-		TemporalJudjmentDelay, DelayBetweenQueAndStimulation, QuestionsWith2Beats, QuestionsWith3Beats,
+	public enum SettingsTypes{ShortPulse, LongPulse, InterbeatPause, TemporalJudgementPulseLength,
+		TemporalJudgementDelay, DelayBetweenQueAndStimulation, QuestionsWith2Beats, QuestionsWith3Beats,
 		QuestionsWith4Beats, QuestionsWith5Beats, QuestionsWith6Beats,
-		AmplitudeA, AmplitudeB, QuestionsPerRound};
+		AmplitudeA, AmplitudeB, QuestionsPerRound, NumOfRewinds};
 
 
 	public Setting ShortPulse;
 	public Setting LongPulse;
 	public Setting InterbeatPause;
-	public Setting TemporalJudjmentPulseLength;
-	public Setting TemporalJudjmentDelay;
+	public Setting TemporalJudgementPulseLength;
+	public Setting TemporalJudgementDelay;
 	public Setting DelayBetweenQueAndStimulation;
 	public Setting QuestionsWith2Beats;
 	public Setting QuestionsWith3Beats;
@@ -26,14 +27,17 @@ public class Settings : MonoBehaviour {
 	public Setting QuestionsPerRound;
 
 	internal bool CalibrationNeeded = true;
-	internal string BodyPartA = "";
-	internal string BodyPartB = "";
+	internal BodyPart BodyPartTreated;
+	internal BodyPart BodyPartHealthy;
 
 	public Setting AmplitudeA;
 	public Setting AmplitudeB;
 
+    public Setting NumOfRewinds;
 
-	public int CurrentDifficulty;
+    public BodyPart[] PossibleBodyParts;
+
+    public int CurrentDifficulty;
 
     public readonly int TotalDifficulties = 6;
 
@@ -45,8 +49,8 @@ public class Settings : MonoBehaviour {
 		SettingsDict [SettingsTypes.ShortPulse] = ShortPulse;
 		SettingsDict [SettingsTypes.LongPulse] = LongPulse;
 		SettingsDict [SettingsTypes.InterbeatPause] = InterbeatPause;
-		SettingsDict [SettingsTypes.TemporalJudjmentPulseLength] = TemporalJudjmentPulseLength;
-		SettingsDict [SettingsTypes.TemporalJudjmentDelay] = TemporalJudjmentDelay;
+		SettingsDict [SettingsTypes.TemporalJudgementPulseLength] = TemporalJudgementPulseLength;
+		SettingsDict [SettingsTypes.TemporalJudgementDelay] = TemporalJudgementDelay;
 		SettingsDict [SettingsTypes.DelayBetweenQueAndStimulation] = DelayBetweenQueAndStimulation;
 		SettingsDict [SettingsTypes.QuestionsWith2Beats] = QuestionsWith2Beats;
 		SettingsDict [SettingsTypes.QuestionsWith3Beats] = QuestionsWith3Beats;
@@ -58,14 +62,17 @@ public class Settings : MonoBehaviour {
 
 		SettingsDict [SettingsTypes.AmplitudeA] = AmplitudeA;
 		SettingsDict [SettingsTypes.AmplitudeB] = AmplitudeB;
+		SettingsDict [SettingsTypes.NumOfRewinds] = NumOfRewinds;
 
-		if (PlayerPrefs.HasKey ("CurrentDifficulty")) {
+        //PlayerPrefs.DeleteAll();
+
+        if (PlayerPrefs.HasKey ("CurrentDifficulty")) {
 			for (int i = 0; i < TotalDifficulties; i++) {
 				ShortPulse.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("ShortPulse" + (i + 1)));
 				LongPulse.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("LongPulse" + (i + 1)));
 				InterbeatPause.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("InterbeatPause" + (i + 1)));
-				TemporalJudjmentPulseLength.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("TemporalJudjmentPulseLength" + (i + 1)));
-				TemporalJudjmentDelay.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("TemporalJudjmentDelay" + (i + 1)));
+				TemporalJudgementPulseLength.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("TemporalJudgementPulseLength" + (i + 1)));
+				TemporalJudgementDelay.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("TemporalJudgementDelay" + (i + 1)));
 				DelayBetweenQueAndStimulation.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("DelayBetweenQueAndStimulation" + (i + 1)));
 				QuestionsWith2Beats.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("QuestionsWith2Beats" + (i + 1)));
 				QuestionsWith3Beats.Difficulties[i].CurrentVal = (byte)(PlayerPrefs.GetInt ("QuestionsWith3Beats" + (i + 1)));
@@ -78,11 +85,15 @@ public class Settings : MonoBehaviour {
 				QuestionsPerRound.Difficulties[i] .CurrentVal = (byte)PlayerPrefs.GetInt ("QuestionsPerRound" + (i + 1));
 			}
 
+            for (int i = 0; i < NumOfRewinds.Difficulties.Length; i++) {
+                NumOfRewinds.Difficulties[i].CurrentVal = (byte)PlayerPrefs.GetInt("NumOfRewinds" + (i + 1));
+            }
 
-			AmplitudeA.CurrentGlobalVal = (byte)PlayerPrefs.GetInt ("AmplitudeA");
+            AmplitudeA.CurrentGlobalVal = (byte)PlayerPrefs.GetInt ("AmplitudeA");
 			AmplitudeB.CurrentGlobalVal = (byte)PlayerPrefs.GetInt ("AmplitudeB");
+            
 
-			CurrentDifficulty = (byte)PlayerPrefs.GetInt ("CurrentDifficulty");
+            CurrentDifficulty = (byte)PlayerPrefs.GetInt ("CurrentDifficulty");
 
 
 		} else {
@@ -90,8 +101,8 @@ public class Settings : MonoBehaviour {
 				ShortPulse.Difficulties[i].CurrentVal = ShortPulse.Difficulties[i].DefaultVal;
 				LongPulse.Difficulties[i].CurrentVal = LongPulse.Difficulties[i].DefaultVal;
 				InterbeatPause.Difficulties[i].CurrentVal = InterbeatPause.Difficulties[i].DefaultVal;
-				TemporalJudjmentPulseLength.Difficulties[i].CurrentVal = TemporalJudjmentPulseLength.Difficulties[i].DefaultVal;
-				TemporalJudjmentDelay.Difficulties[i].CurrentVal = TemporalJudjmentDelay.Difficulties[i].DefaultVal;
+				TemporalJudgementPulseLength.Difficulties[i].CurrentVal = TemporalJudgementPulseLength.Difficulties[i].DefaultVal;
+				TemporalJudgementDelay.Difficulties[i].CurrentVal = TemporalJudgementDelay.Difficulties[i].DefaultVal;
 				DelayBetweenQueAndStimulation.Difficulties[i].CurrentVal = DelayBetweenQueAndStimulation.Difficulties[i].DefaultVal;
 				QuestionsWith2Beats.Difficulties[i].CurrentVal = QuestionsWith2Beats.Difficulties[i].DefaultVal;
 				QuestionsWith3Beats.Difficulties[i].CurrentVal = QuestionsWith3Beats.Difficulties[i].DefaultVal;
@@ -104,23 +115,37 @@ public class Settings : MonoBehaviour {
 			for (int i = 0; i < QuestionsPerRound.Difficulties.Length; i++) {
 				QuestionsPerRound.Difficulties[i].CurrentVal = QuestionsPerRound.Difficulties[i].DefaultVal;
 			}
+            for (int i = 0; i < NumOfRewinds.Difficulties.Length; i++) {
+                NumOfRewinds.Difficulties[i].CurrentVal = NumOfRewinds.Difficulties[i].DefaultVal;
+            }
 
-			AmplitudeA.CurrentGlobalVal = AmplitudeA.DefaultGlobalVal;
+            AmplitudeA.CurrentGlobalVal = AmplitudeA.DefaultGlobalVal;
 			AmplitudeB.CurrentGlobalVal = AmplitudeB.DefaultGlobalVal;
+            
 
-			CurrentDifficulty = 0;
+            CurrentDifficulty = 0;
 
-			SaveSettings();
 		}
-	}
+
+        if (PlayerPrefs.HasKey("BodypartTreated")) {
+            BodyPartTreated = GetBodypartByName(PlayerPrefs.GetString("BodypartTreated"));
+            BodyPartHealthy = GetBodypartByName(PlayerPrefs.GetString("BodypartHealthy"));
+
+        } else {
+            BodyPartTreated = PossibleBodyParts[0];
+            BodyPartHealthy = GetAllowedBodyParts(false)[0];
+            SaveSettings();
+        }
+    }
+
 
 	public void SaveSettings(){
 		for (int i = 0; i < TotalDifficulties; i++) {
 			PlayerPrefs.SetInt ("ShortPulse" + (i + 1), ShortPulse.Difficulties[i].CurrentVal);
 			PlayerPrefs.SetInt ("LongPulse" + (i + 1), LongPulse.Difficulties[i].CurrentVal);
 			PlayerPrefs.SetInt ("InterbeatPause" + (i + 1), InterbeatPause.Difficulties[i].CurrentVal);
-			PlayerPrefs.SetInt ("TemporalJudjmentPulseLength" + (i + 1), TemporalJudjmentPulseLength.Difficulties[i].CurrentVal);
-			PlayerPrefs.SetInt ("TemporalJudjmentDelay" + (i + 1), TemporalJudjmentDelay.Difficulties[i].CurrentVal);
+			PlayerPrefs.SetInt ("TemporalJudgementPulseLength" + (i + 1), TemporalJudgementPulseLength.Difficulties[i].CurrentVal);
+			PlayerPrefs.SetInt ("TemporalJudgementDelay" + (i + 1), TemporalJudgementDelay.Difficulties[i].CurrentVal);
 			PlayerPrefs.SetInt ("DelayBetweenQueAndStimulation" + (i + 1), DelayBetweenQueAndStimulation.Difficulties[i].CurrentVal);
 			PlayerPrefs.SetInt ("QuestionsWith2Beats" + (i + 1), QuestionsWith2Beats.Difficulties[i].CurrentVal);
 			PlayerPrefs.SetInt ("QuestionsWith3Beats" + (i + 1), QuestionsWith3Beats.Difficulties[i].CurrentVal);
@@ -133,12 +158,21 @@ public class Settings : MonoBehaviour {
 			PlayerPrefs.SetInt ("QuestionsPerRound" + (i + 1), QuestionsPerRound.Difficulties[i].CurrentVal);
 		}
 
-		PlayerPrefs.SetInt ("AmplitudeA", AmplitudeA.CurrentGlobalVal);
+        for (int i = 0; i < NumOfRewinds.Difficulties.Length; i++) {
+            PlayerPrefs.SetInt("NumOfRewinds" + (i + 1), NumOfRewinds.Difficulties[i].CurrentVal);
+        }
+
+        PlayerPrefs.SetInt ("AmplitudeA", AmplitudeA.CurrentGlobalVal);
 		PlayerPrefs.SetInt ("AmplitudeB", AmplitudeB.CurrentGlobalVal);
+        
 
-		PlayerPrefs.SetInt ("CurrentDifficulty", CurrentDifficulty);
+        PlayerPrefs.SetInt ("CurrentDifficulty", CurrentDifficulty);
 
-		PlayerPrefs.Save ();
+        PlayerPrefs.SetString("BodypartTreated", BodyPartTreated.Name);
+        PlayerPrefs.SetString("BodypartHealthy", BodyPartHealthy.Name);
+        
+
+        PlayerPrefs.Save ();
 	}
 
 	public void CalibrationDone(){
@@ -158,6 +192,44 @@ public class Settings : MonoBehaviour {
 
 		}
 	}
+
+    public BodyPart GetBodypartByName(string partName) {
+        return PossibleBodyParts.FirstOrDefault<BodyPart>(p => p.Name == partName);   
+    }
+
+    public List<BodyPart> GetAllowedBodyParts(bool forTreadedPart) {
+
+        List<BodyPart> retval = new List<BodyPart>();
+
+        BodyPart bannedPart = null;
+        if (forTreadedPart) {
+            bannedPart = BodyPartHealthy;
+        } else {
+            bannedPart = BodyPartTreated;
+        }
+
+        for (int i = 0; i < PossibleBodyParts.Length; i++) {
+            if (PossibleBodyParts[i] != bannedPart) {
+                bool allowPart = true;
+
+                if (bannedPart != null){
+                    for (int j = 0; j < PossibleBodyParts[i].ExcludedType.Length; j++) {
+                        if (PossibleBodyParts[i].ExcludedType[j] == bannedPart.Type) {
+                            allowPart = false;
+                        }
+                    }
+                }
+                
+
+                if (allowPart) {
+                    retval.Add(PossibleBodyParts[i]);
+                }
+
+            }
+        }
+
+        return retval;
+    }
 
 	[System.Serializable]
 	public class Difficulty{

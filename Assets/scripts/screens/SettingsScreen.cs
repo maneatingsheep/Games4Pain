@@ -96,10 +96,10 @@ public class SettingsScreen : MonoBehaviour {
             case Settings.SettingsTypes.InterbeatPause:
                 BluetoothProxy.Instance.DeliverTest5(1, 1, Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeA), 3, 2);
                 break;
-            case Settings.SettingsTypes.TemporalJudjmentPulseLength:
+            case Settings.SettingsTypes.TemporalJudgementPulseLength:
                 BluetoothProxy.Instance.DeliverTest2(1, 1, Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeA), Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeB));
                 break;
-            case Settings.SettingsTypes.TemporalJudjmentDelay:
+            case Settings.SettingsTypes.TemporalJudgementDelay:
                 BluetoothProxy.Instance.DeliverTest2(1, 1, Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeA), Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeB));
                 break;
             case Settings.SettingsTypes.DelayBetweenQueAndStimulation:

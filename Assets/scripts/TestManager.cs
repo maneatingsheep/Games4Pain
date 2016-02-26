@@ -6,16 +6,19 @@ using System.Linq;
 
 public class TestManager : MonoBehaviour {
 
-	public enum BackModes {TestBegin, TestWrong, TestCorrect, Neutral, NeutralForce};
+	//public enum BackModes {TestBegin, TestWrong, TestCorrect, Neutral, NeutralForce};
 
 	public static TestManager Instance;
 
-    public TestTRansition TestTRansitionInst;
+    //public TestTransition TestTransitionInst;
+    public TestIntroduction TestIntroductionInst;
 
     private int currentTestIndex;
 	private BasicTest currentTest;
-	public Text[] Instruction;
-	public Text RewindCount;
+	public Text Instruction;
+	public Image InstructionCont;
+
+    public Text RewindCount;
 	public Button RewindButt;
 
     private int _currentVisibleTest;
@@ -29,7 +32,6 @@ public class TestManager : MonoBehaviour {
 	public Image RoundBack;
 	
 
-	public int RoundRewinds;
 	private int _currentRewinds;
 
 	public BasicTest.TestTypes[] TestSeq;
@@ -55,7 +57,7 @@ public class TestManager : MonoBehaviour {
 	}
 	
 	public void Init(){
-        TestTRansitionInst.gameObject.SetActive(false);
+        TestIntroductionInst.gameObject.SetActive(false);
     }
 
     public void Reset() {
@@ -73,11 +75,13 @@ public class TestManager : MonoBehaviour {
 
         _lastTestCorrect = true;
 
-        TestTRansitionInst.SetMap(_totalVisibleTests);
+        /*TestTRansitionInst.SetMap(_totalVisibleTests);
 
-        TestTRansitionInst.gameObject.SetActive(false);
+        TestTRansitionInst.gameObject.SetActive(false);*/
 
-        CompletedTests.Clear();
+        TestIntroductionInst.gameObject.SetActive(false); 
+
+         CompletedTests.Clear();
 
     }
 
@@ -125,39 +129,38 @@ public class TestManager : MonoBehaviour {
 				child.gameObject.SetActive(false);
 			}
 		}
-
-        for (int i = 0; i < Instruction.Length; i++) {
-            Instruction[i].text = "";
-        }
-
-		_currentRewinds = RoundRewinds;
+        
+        _currentRewinds = Settings.Instance.GetProperty(Settings.SettingsTypes.NumOfRewinds, currentTestIndex);
 		RewindCount.text = "X" + _currentRewinds;
 		RewindButt.interactable = _currentRewinds > 0;
 
 		RewindCount.gameObject.SetActive (false);
 		RewindButt.gameObject.SetActive (false);
 
-		SetBackMode (BackModes.TestBegin);
+        //SetBackMode (BackModes.TestBegin);
+        InstructionCont.gameObject.SetActive(false);
+        SetImageOpacity(true);
+        Instruction.text = "";
 
-        Instruction[0].text = "Sector " + (_currentVisibleTest + 1) + " / " + _totalVisibleTests;
-        Instruction[1].text = "";
-        if (_lastTestCorrect) {
+
+        /*if (_lastTestCorrect) {
             Instruction[2].text = "Destination found!";
             Instruction[3].text = "Full speed ahead";
         } else {
             Instruction[2].text = "Destination unknown";
             Instruction[3].text = "Lets see...";
-        }
+        }*/
 
+        SetImage(null);
+        TestIntroductionInst.gameObject.SetActive(true);
+        TestIntroductionInst.SetRoundData((_currentVisibleTest + 1), _totalVisibleTests, currentTest);
 
-        TestTRansitionInst.gameObject.SetActive(true);
-
-        TestTRansitionInst.ProgressToNextStar(_lastTestCorrect);
+        //TestTRansitionInst.ProgressToNextStar(_lastTestCorrect);
 
         if (SkipTransitions) {
             StartQuaestion();
         } else {
-            DoInvoke("StartQuaestion", 6f);
+            DoInvoke("StartQuaestion", 3f);
         }
 		
 	}
@@ -175,17 +178,16 @@ public class TestManager : MonoBehaviour {
 		}
 		currentTest.Reset ();
 
-        for (int i = 0; i < Instruction.Length; i++) {
-            Instruction[i].text = "";
-        }
+        InstructionCont.gameObject.SetActive(false);
+        Instruction.text = "";
 
-        Instruction[2].text = "Receiving transmittion...";
-
+        //Instruction[2].text = "Receiving transmission...";
 
         SetImage (ImageSprites[Random.Range(0, ImageSprites.Length)]);
-		SetBackMode (TestManager.BackModes.Neutral);
+        //SetImageOpacity(true);
+		//SetBackMode (TestManager.BackModes.Neutral);
 
-        TestTRansitionInst.gameObject.SetActive(false);
+        TestIntroductionInst.gameObject.SetActive(false);
 
         if (SkipTransitions) {
             ShowInstruction();
@@ -196,9 +198,9 @@ public class TestManager : MonoBehaviour {
 
 	private void ShowInstruction(){
 
-        for (int i = 0; i < Instruction.Length; i++) {
-            Instruction[i].text = currentTest.Instructions[i];
-        }
+        InstructionCont.gameObject.SetActive(true);
+        Instruction.text = currentTest.Instruction;
+
 
         if (SkipTransitions) {
             DeliverPattern();
@@ -230,13 +232,14 @@ public class TestManager : MonoBehaviour {
 
 		currentTest.Responsive = true;
 
-        for (int i = 0; i < Instruction.Length; i++) {
-            Instruction[i].text = currentTest.ActionInstructions[i];
-        }
+        InstructionCont.gameObject.SetActive(false);
+        SetImageOpacity(false);
+        Instruction.text = currentTest.ActionInstruction;
         
 
-        SetImage(null);
-        SetBackMode(TestManager.BackModes.Neutral);
+        //SetImageOpacity(false);
+        //SetImage(null);
+        //SetBackMode(TestManager.BackModes.Neutral);
 
         RewindCount.gameObject.SetActive (true);
 		RewindButt.gameObject.SetActive (true);
@@ -266,13 +269,12 @@ public class TestManager : MonoBehaviour {
 
 	private void ShowResult(){
 		currentTest.gameObject.SetActive (false);
-        
-		SetBackMode ((_lastAnswerCorrect)?TestManager.BackModes.TestCorrect:TestManager.BackModes.TestWrong);
 
-        Instruction[0].text = "";
-        Instruction[1].text = "";
-        Instruction[2].text = "";
-        Instruction[3].text = (_lastAnswerCorrect) ? "Correct":"Wrong";
+        //SetBackMode ((_lastAnswerCorrect)?TestManager.BackModes.TestCorrect:TestManager.BackModes.TestWrong);
+
+        InstructionCont.gameObject.SetActive(false);
+        Instruction.text =  "<b>" +  ((_lastAnswerCorrect) ? "Correct" : "Wrong")  + "</b>";
+        
 
         TestProgress.Instance.SetQuestionState(currentQuaestion, (_lastAnswerCorrect) ? 2 : 3);
 
@@ -307,7 +309,7 @@ public class TestManager : MonoBehaviour {
 		currentTest.DeliverPattern ();
 	}
 
-	public void SetBackMode(BackModes mode){
+	/*public void SetBackMode(BackModes mode){
 		
 		Color targetCol = Color.white;
 		Color instructionCol = Color.black;
@@ -342,11 +344,15 @@ public class TestManager : MonoBehaviour {
 		} else {
 			HOTween.To (RoundBack, 0.6f, "color", targetCol);
 		}
-	}
+	}*/
 	
 	public void SetImage(Sprite sprite){
 		RoundBack.sprite = sprite;
 	}
+
+    public void SetImageOpacity(bool opaque) {
+        RoundBack.color = (opaque) ? new Color(1, 1, 1, 1) : new Color(1, 1, 1, 0.2f);
+    }
 
     private void DoInvoke(string methodName, float time) {
         _lastInvokeMethod = methodName;
@@ -359,16 +365,18 @@ public class TestManager : MonoBehaviour {
         _lastRemaningInvoke = _lastInvoketime - (Time.time - _lasttimeOfInvoke);
         if (_lastRemaningInvoke > 0) {
             CancelInvoke(_lastInvokeMethod);
-            TestTRansitionInst.Pause();
+            //TestTRansitionInst.Pause();
         }
     }
 
     public void Resume() {
         if (_lastRemaningInvoke > 0) {
             DoInvoke(_lastInvokeMethod, _lastRemaningInvoke);
-            TestTRansitionInst.Resume();
+            //TestTRansitionInst.Resume();
         }
     }
+    
+   
 
 }
 

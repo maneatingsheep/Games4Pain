@@ -9,12 +9,17 @@ public class BasicTest : MonoBehaviour {
 
 	protected BluetoothProxy.Channels channel;
 
-	internal string[] Instructions = new string[4];
-    internal string[] ActionInstructions = new string[4];
+    public string Description;
+    public Sprite IntroImage;
+
+    public string Instruction;
+    public string ActionInstruction;
     
     protected byte[] BluetoothSequence;
 	internal byte NumOfQuestions;
     public bool Responsive;
+
+
 
 	virtual public void Reset(){
 		channel = (Random.value > 0.5f) ? BluetoothProxy.Channels.ChannelA : BluetoothProxy.Channels.ChannelB;

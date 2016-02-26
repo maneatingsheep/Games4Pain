@@ -14,23 +14,21 @@ public class TestTemporalOrder : PatternTest {
 	override public void Reset(){
 		base.Reset ();
 
-        Instructions[0] = "Pay attention to your";
-        Instructions[1] = bodyPart1;
-        Instructions[2] = "and your";
-        Instructions[3] = bodyPart2;
+        bodyPart1 = Settings.Instance.BodyPartTreated.Name.ToUpper();
+        bodyPart2 = Settings.Instance.BodyPartHealthy.Name.ToUpper();
 
-        ActionInstructions[0] = "";
-        ActionInstructions[1] = "";
-        ActionInstructions[2] = "The transmittions weren't in sync";
-        ActionInstructions[3] = "Whitch one came first?";
+        Instruction = "<b>" + bodyPart1 + " </b>  +  <b>" + bodyPart2 + "</b>";
+
+        ActionInstruction = "<b>Where</b> did you feel it <b>first</b>?";
+ 
 
         ChannelAButt.sprite = ButtonSprites[0];
         ChannelBButt.sprite = ButtonSprites[0];
         ChannelAButt.GetComponentInChildren<Text>().color = Color.black;
         ChannelBButt.GetComponentInChildren<Text>().color = Color.black;
 
-        ChannelAButt.GetComponentInChildren<Text>().text = Settings.Instance.BodyPartA;
-        ChannelBButt.GetComponentInChildren<Text>().text = Settings.Instance.BodyPartB;
+        ChannelAButt.GetComponentInChildren<Text>().text = Settings.Instance.BodyPartTreated.Name;
+        ChannelBButt.GetComponentInChildren<Text>().text = Settings.Instance.BodyPartHealthy.Name;
 
 
         ChannelAButt.gameObject.SetActive (true);

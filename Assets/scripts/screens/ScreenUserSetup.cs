@@ -5,27 +5,27 @@ using System.Collections.Generic;
 
 public class ScreenUserSetup : MonoBehaviour {
 
-	private enum Steps{None, AssignA, AssignB, TestA, TestB, Diff};
+	private enum Steps{None, Amplitudes, Diff};
 
 	public static ScreenUserSetup Instance;
 
 	private Steps step;
 
 	public Text InstructionText;
-	public InputField BodyPartField;
 	public Button OkButt;
-	public Slider IntensitySlider;
-	public Button IntensityTest;
+	public SettingSlider[] IntensitySliders;
+	public Dropdown[] BodypartSelectors;
+    public Image AmplitudesCont;
 	public Image DifficultyGroup;
 
-	public Text SliderValText;
-
-	public List<Toggle> DiffToggles;
+    public List<Toggle> DiffToggles;
 	public ToggleGroup DiffToggleGroup;
 
 	public void Init () {
 		Instance = this;
-	}
+        IntensitySliders[0].Init();
+        IntensitySliders[1].Init();
+    }
 
 	public void StartUserSetup(){
 		step = Steps.None;
@@ -35,57 +35,26 @@ public class ScreenUserSetup : MonoBehaviour {
 	public void NextStep(){
 		switch (step) {
 		    case Steps.None:
-			    step = Steps.AssignA;
-			    InstructionText.text = "Assign stimulator A to";
-			    BodyPartField.gameObject.SetActive(true);
-			    BodyPartField.text = "";
-			    IntensitySlider.gameObject.SetActive(false);
-			    IntensityTest.gameObject.SetActive(false);
-			    SliderValText.gameObject.SetActive(false);
-			    DifficultyGroup.gameObject.SetActive(false);
-			    break;
-		    case Steps.AssignA:
-
-                if (BodyPartField.text == "") BodyPartField.text = "Body part A";
-
-                Settings.Instance.BodyPartA = BodyPartField.text;
-				step = Steps.AssignB;
-				InstructionText.text = "Assign timulator B to";
-				BodyPartField.text = "";
-				IntensitySlider.gameObject.SetActive(false);
-				IntensityTest.gameObject.SetActive(false);
-			    
-
-			    break;
-		    case Steps.AssignB:
-
-                if (BodyPartField.text == "") BodyPartField.text = "Body part B";
-
-                Settings.Instance.BodyPartB = BodyPartField.text;
-			    step = Steps.TestA;
-			    BodyPartField.gameObject.SetActive(false);
-			    InstructionText.text = "Adjust intensity level of stimulator A"; 
-			    IntensitySlider.gameObject.SetActive(true);
-			    IntensityTest.gameObject.SetActive(true);
-			    IntensitySlider.value = Settings.Instance.AmplitudeA.CurrentGlobalVal;
-			    SliderValText.gameObject.SetActive(true);
-			    SliderValText.text = IntensitySlider.value.ToString();
-			
-			    break;
-		    case Steps.TestA:
-			    step = Steps.TestB;
-			    InstructionText.text = "Adjust intensity level of stimulator B"; 
-			    IntensitySlider.gameObject.SetActive(true);
-			    IntensityTest.gameObject.SetActive(true);
-			    IntensitySlider.value = Settings.Instance.AmplitudeB.CurrentGlobalVal;
-			    SliderValText.text = IntensitySlider.value.ToString();
-			    break;
-		    case Steps.TestB:
-			    step = Steps.Diff;
-			    InstructionText.text = "Set Difficulty"; 
-			    IntensitySlider.gameObject.SetActive(false);
-			    IntensityTest.gameObject.SetActive(false);
-			    SliderValText.gameObject.SetActive(false);
+			    step = Steps.Amplitudes;
+			    InstructionText.text = "Assign amplitudes";
+                AmplitudesCont.gameObject.SetActive(true);
+                
+                FillDropdown(BodypartSelectors[0]);
+                BodypartSelectors[0].value = Settings.Instance.GetAllowedBodyParts(true).IndexOf(Settings.Instance.BodyPartTreated);
+                BodypartSelectors[0].RefreshShownValue();
+                FillDropdown(BodypartSelectors[1]);
+                BodypartSelectors[1].value = Settings.Instance.GetAllowedBodyParts(false).IndexOf(Settings.Instance.BodyPartHealthy);
+                BodypartSelectors[1].RefreshShownValue();
+                DifficultyGroup.gameObject.SetActive(false);
+                IntensitySliders[0].SetValue(Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeA), true);
+                IntensitySliders[1].SetValue(Settings.Instance.GetProperty(Settings.SettingsTypes.AmplitudeB), true);
+                break;
+		    
+		    case Steps.Amplitudes:
+                
+                step = Steps.Diff;
+			    InstructionText.text = "Set Difficulty";
+                AmplitudesCont.gameObject.SetActive(false);
 			    DifficultyGroup.gameObject.SetActive(true);
 
 			    DiffToggles[Settings.Instance.CurrentDifficulty].isOn = true;
@@ -98,23 +67,48 @@ public class ScreenUserSetup : MonoBehaviour {
 		}
 	}
 
+    private void FillDropdown(Dropdown partDrop) {
+        partDrop.options.Clear();
+
+        foreach (BodyPart bp in Settings.Instance.GetAllowedBodyParts(partDrop == BodypartSelectors[0])) {
+            partDrop.options.Add(new Dropdown.OptionData() { text = bp.Name });
+        }
+        
+    }
+
+    public void PartDropChanged(Dropdown partDrop) {
+        if (partDrop == BodypartSelectors[0]) {
+            Settings.Instance.BodyPartTreated = Settings.Instance.GetBodypartByName(partDrop.captionText.text);
+            FillDropdown(BodypartSelectors[1]);
+        } else {
+            Settings.Instance.BodyPartHealthy = Settings.Instance.GetBodypartByName(partDrop.captionText.text);
+            FillDropdown(BodypartSelectors[0]);
+        }
+
+        Settings.Instance.SaveSettings();
+    }
+
 	public void DiffClicked(Toggle tog){
 		Settings.Instance.CurrentDifficulty = (byte)DiffToggles.IndexOf(tog);
 		Settings.Instance.SaveSettings ();
 	}
 
-	public void ChangeIntensity(){
-		SliderValText.text = IntensitySlider.value.ToString();
-		if (step == Steps.TestA) {
-			Settings.Instance.AmplitudeA.CurrentGlobalVal = (byte)IntensitySlider.value;
+	public void ChangeIntensity(SettingSlider slider){
+		if (slider == IntensitySliders[0]) {
+			Settings.Instance.AmplitudeA.CurrentGlobalVal = slider.value;
 		} else {
-			Settings.Instance.AmplitudeB.CurrentGlobalVal = (byte)IntensitySlider.value;
+			Settings.Instance.AmplitudeB.CurrentGlobalVal = slider.value;
 		}
 
-		Settings.Instance.SaveSettings();
+		
 	}
 
-	public void TestIntensity(){
-		BluetoothProxy.Instance.TestIntensity ((step == Steps.TestA) ? BluetoothProxy.Channels.ChannelA : BluetoothProxy.Channels.ChannelB);
+	public void TestIntensity(SettingSlider slider) {
+        if (slider == IntensitySliders[0]) {
+            BluetoothProxy.Instance.TestIntensity(BluetoothProxy.Channels.ChannelA);
+        } else {
+            BluetoothProxy.Instance.TestIntensity(BluetoothProxy.Channels.ChannelB);
+        }
+            
 	}
 }

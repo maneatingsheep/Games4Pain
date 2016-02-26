@@ -14,9 +14,10 @@ public class ScreenManager : MonoBehaviour {
 	public MainMenuScreen MainMenuScreenInst;
 	public TestManager TestManagerInst;
 	public Conclusion ConclusionInst;
+	public Image BackImage;
 
     //popups
-	public SettingsScreen SettingsScreenInst;
+    public SettingsScreen SettingsScreenInst;
 	public Image ConfirmationPopoupInst;
 	public Image PasswordPopoupInst;
     public ScreenUserSetup ScreenUserSetupInst;
@@ -61,10 +62,11 @@ public class ScreenManager : MonoBehaviour {
 
 			MainMenuScreenInst.gameObject.SetActive (screen == Screens.MainMenu);
 			TestManagerInst.gameObject.SetActive (screen == Screens.Game);
+            BackImage.gameObject.SetActive(screen == Screens.Game);
             TestProgress.Instance.gameObject.SetActive(screen == Screens.Game);
             ConclusionInst.gameObject.SetActive(screen == Screens.End);
             
-            BackButt.gameObject.SetActive (screen != Screens.MainMenu);
+            BackButt.gameObject.SetActive (screen != Screens.MainMenu && screen != Screens.End);
 		}
 	}
 
@@ -74,10 +76,12 @@ public class ScreenManager : MonoBehaviour {
 
 		ScreenUserSetupInst.gameObject.SetActive (false);
 		TestManagerInst.gameObject.SetActive (false);
+        BackImage.gameObject.SetActive(false);
 
         if (hideWindows) {
             MainMenuScreenInst.gameObject.SetActive(false);
             TestManagerInst.gameObject.SetActive(false);
+            BackImage.gameObject.SetActive(false);
             TestProgress.Instance.gameObject.SetActive(false);
             ConclusionInst.gameObject.SetActive(false);
         }

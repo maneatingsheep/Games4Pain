@@ -131,11 +131,11 @@ public class BluetoothProxy : MonoBehaviour {
             0x02, //test num
 			Chennel1,
             amp1,
-            Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudjmentPulseLength),
-            Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudjmentDelay),
+            Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudgementPulseLength),
+            Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudgementDelay),
             Chennel2,
             amp2,
-            Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudjmentPulseLength),
+            Settings.Instance.GetProperty(Settings.SettingsTypes.TemporalJudgementPulseLength),
             0, //delay - not used
 			0, //time between pulses in 15mSec intervals - not used
 			0xd2};

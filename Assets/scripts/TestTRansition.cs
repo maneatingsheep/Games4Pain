@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using Holoville.HOTween;
 
-public class TestTRansition : MonoBehaviour {
+public class TestTransition : MonoBehaviour {
 
 
     public Image StarPF;

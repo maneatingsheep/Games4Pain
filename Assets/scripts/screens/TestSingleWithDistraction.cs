@@ -10,11 +10,8 @@ public class TestSingleWithDistraction : PatternRecognitionTest {
 	override public void Reset(){
 		base.Reset ();
 
-
-        Instructions[0] = "Pay attention to your";
-        Instructions[1] = bodyPart1;
-        Instructions[2] = "ignore your";
-        Instructions[3] = bodyPart2;
+        Instruction = "<b>" + bodyPart1 + "</b> (only)" ;
+      
         
 	}
 
